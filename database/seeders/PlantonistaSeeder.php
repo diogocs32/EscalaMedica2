@@ -18,6 +18,7 @@ class PlantonistaSeeder extends Seeder
                 'crm' => '456789',
                 'email' => 'ana.oliveira@hospital.com',
                 'telefone' => '(17) 99999-9999',
+                'especialidade' => 'Cardiologia',
                 'status' => 'ativo'
             ],
             [
@@ -25,6 +26,7 @@ class PlantonistaSeeder extends Seeder
                 'crm' => '567890',
                 'email' => 'carlos.souza@hospital.com',
                 'telefone' => '(17) 99999-9999',
+                'especialidade' => 'Ortopedia',
                 'status' => 'ativo'
             ],
             [
@@ -32,6 +34,7 @@ class PlantonistaSeeder extends Seeder
                 'crm' => '213371',
                 'email' => 'diogoccs32@gmail.com',
                 'telefone' => '17988340999',
+                'especialidade' => 'Clínico Geral',
                 'status' => 'ativo'
             ],
             [
@@ -39,6 +42,7 @@ class PlantonistaSeeder extends Seeder
                 'crm' => '123456',
                 'email' => 'joao.silva@hospital.com',
                 'telefone' => '(17) 99999-9999',
+                'especialidade' => 'Pediatria',
                 'status' => 'ativo'
             ],
             [
@@ -46,6 +50,7 @@ class PlantonistaSeeder extends Seeder
                 'crm' => '678901',
                 'email' => 'julia.lima@hospital.com',
                 'telefone' => '(17) 99999-9999',
+                'especialidade' => 'Neurologia',
                 'status' => 'ativo'
             ],
             [
@@ -53,6 +58,7 @@ class PlantonistaSeeder extends Seeder
                 'crm' => '234567',
                 'email' => 'maria.santos@hospital.com',
                 'telefone' => '(17) 99999-9999',
+                'especialidade' => 'Ginecologia',
                 'status' => 'ativo'
             ],
             [
@@ -60,6 +66,7 @@ class PlantonistaSeeder extends Seeder
                 'crm' => '890123',
                 'email' => 'patricia.rocha@hospital.com',
                 'telefone' => '(17) 99999-9999',
+                'especialidade' => 'Anestesiologia',
                 'status' => 'ativo'
             ],
             [
@@ -67,6 +74,7 @@ class PlantonistaSeeder extends Seeder
                 'crm' => '345678',
                 'email' => 'pedro.costa@hospital.com',
                 'telefone' => '(17) 99999-9999',
+                'especialidade' => 'Emergência',
                 'status' => 'ativo'
             ],
             [
@@ -74,6 +82,15 @@ class PlantonistaSeeder extends Seeder
                 'crm' => '789012',
                 'email' => 'roberto.dias@hospital.com',
                 'telefone' => '(17) 99999-9999',
+                'especialidade' => 'UTI',
+                'status' => 'ativo'
+            ],
+            [
+                'nome' => 'Fernanda Almeida',
+                'crm' => '901234',
+                'email' => 'fernanda.almeida@hospital.com',
+                'telefone' => '(17) 99999-9999',
+                'especialidade' => 'Cirurgia Geral',
                 'status' => 'ativo'
             ],
         ];

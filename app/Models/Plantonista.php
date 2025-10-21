@@ -15,6 +15,7 @@ class Plantonista extends Model
         'crm',
         'email',
         'telefone',
+        'especialidade',
         'status',
     ];
 
