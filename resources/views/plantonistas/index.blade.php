@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Setores - Sistema de Escala Médica</title>
+    <title>Plantonistas - Sistema de Escala Médica</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
@@ -13,8 +13,8 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h3">📋 Gestão de Setores</h1>
-                    <a href="{{ route('setores.create') }}" class="btn btn-primary">➕ Novo Setor</a>
+                    <h1 class="h3">👨‍⚕️ Gestão de Plantonistas</h1>
+                    <a href="{{ route('plantonistas.create') }}" class="btn btn-primary">➕ Novo Plantonista</a>
                 </div>
 
                 @if(session('success'))
@@ -35,39 +35,41 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">Lista de Setores</h5>
+                        <h5 class="mb-0">Lista de Plantonistas</h5>
                     </div>
                     <div class="card-body">
-                        @if($setores->count() > 0)
+                        @if($plantonistas->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
                                         <th>Nome</th>
-                                        <th>Descrição</th>
-                                        <th>Vagas Ativas</th>
+                                        <th>CRM</th>
+                                        <th>Email</th>
+                                        <th>Telefone</th>
                                         <th>Status</th>
                                         <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($setores as $setor)
+                                    @foreach($plantonistas as $plantonista)
                                     <tr>
-                                        <td>{{ $setor->id }}</td>
-                                        <td><strong>{{ $setor->nome }}</strong></td>
-                                        <td>{{ Str::limit($setor->descricao, 50) }}</td>
-                                        <td>{{ $setor->vagas->count() }}</td>
+                                        <td>{{ $plantonista->id }}</td>
+                                        <td><strong>{{ $plantonista->nome }}</strong></td>
+                                        <td>{{ $plantonista->crm }}</td>
+                                        <td>{{ $plantonista->email }}</td>
+                                        <td>{{ $plantonista->telefone }}</td>
                                         <td>
-                                            <span class="badge bg-{{ $setor->status === 'ativo' ? 'success' : 'secondary' }}">
-                                                {{ ucfirst($setor->status) }}
+                                            <span class="badge bg-{{ $plantonista->status === 'ativo' ? 'success' : 'secondary' }}">
+                                                {{ ucfirst($plantonista->status) }}
                                             </span>
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <a href="{{ route('setores.show', $setor) }}" class="btn btn-sm btn-outline-info">👁️</a>
-                                                <a href="{{ route('setores.edit', $setor) }}" class="btn btn-sm btn-outline-warning">✏️</a>
-                                                <form action="{{ route('setores.destroy', $setor) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este setor?')">
+                                                <a href="{{ route('plantonistas.show', $plantonista) }}" class="btn btn-sm btn-outline-info">👁️</a>
+                                                <a href="{{ route('plantonistas.edit', $plantonista) }}" class="btn btn-sm btn-outline-warning">✏️</a>
+                                                <form action="{{ route('plantonistas.destroy', $plantonista) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este plantonista?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
@@ -80,20 +82,19 @@
                             </table>
                         </div>
 
-                        {{ $setores->links() }}
+                        <div class="mt-3">
+                            {{ $plantonistas->links() }}
+                        </div>
                         @else
-                        <div class="text-center py-4">
-                            <p class="text-muted">Nenhum setor cadastrado.</p>
-                            <a href="{{ route('setores.create') }}" class="btn btn-primary">Cadastrar Primeiro Setor</a>
+                        <div class="alert alert-info">
+                            Nenhum plantonista cadastrado ainda. <a href="{{ route('plantonistas.create') }}">Cadastre o primeiro!</a>
                         </div>
                         @endif
                     </div>
                 </div>
 
                 <div class="mt-3">
-                    <a href="{{ url('/') }}" class="btn btn-secondary">🏠 Voltar ao Início</a>
-                    <a href="{{ route('turnos.index') }}" class="btn btn-outline-primary">🕐 Turnos</a>
-                    <a href="{{ route('alocacoes.index') }}" class="btn btn-outline-success">📅 Alocações</a>
+                    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">⬅️ Voltar ao Dashboard</a>
                 </div>
             </div>
         </div>

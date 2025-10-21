@@ -13,13 +13,10 @@ return new class extends Migration
     {
         Schema::create('setores', function (Blueprint $table) {
             $table->id();
-            $table->string('nome');
+            $table->string('nome')->unique(); // Setores globais - nomes únicos
             $table->text('descricao')->nullable();
-            $table->foreignId('unidade_id')->constrained('unidades')->onDelete('cascade');
             $table->enum('status', ['ativo', 'inativo'])->default('ativo');
             $table->timestamps();
-
-            $table->unique(['nome', 'unidade_id']); // Setores únicos por unidade
         });
     }
 

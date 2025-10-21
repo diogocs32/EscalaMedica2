@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setor;
-use App\Models\Unidade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,9 +23,7 @@ class SetorController extends Controller
      */
     public function create()
     {
-        $unidades = Unidade::with('cidade')->ativo()->orderBy('nome')->get();
-
-        return view('setores.create', compact('unidades'));
+        return view('setores.create');
     }
 
     /**
@@ -36,7 +33,6 @@ class SetorController extends Controller
     {
         $request->validate([
             'nome' => 'required|string|max:255|unique:setores,nome',
-            'unidade_id' => 'required|exists:unidades,id',
             'descricao' => 'nullable|string|max:1000',
             'status' => 'sometimes|in:ativo,inativo'
         ]);
@@ -46,7 +42,6 @@ class SetorController extends Controller
 
             $setor = Setor::create([
                 'nome' => $request->nome,
-                'unidade_id' => $request->unidade_id,
                 'descricao' => $request->descricao,
                 'status' => $request->status ?? 'ativo'
             ]);
@@ -70,7 +65,7 @@ class SetorController extends Controller
      */
     public function show(Setor $setor)
     {
-        $setor->load(['vagas.unidade', 'vagas.turno']);
+        $setor->load(['vagas.turno', 'vagas.unidade']);
 
         return view('setores.show', compact('setor'));
     }
@@ -80,9 +75,7 @@ class SetorController extends Controller
      */
     public function edit(Setor $setor)
     {
-        $unidades = Unidade::with('cidade')->ativo()->orderBy('nome')->get();
-
-        return view('setores.edit', compact('setor', 'unidades'));
+        return view('setores.edit', compact('setor'));
     }
 
     /**

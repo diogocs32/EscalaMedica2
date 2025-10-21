@@ -12,6 +12,7 @@ class Cidade extends Model
 
     protected $fillable = [
         'nome',
+        'estado',
     ];
 
     protected $casts = [

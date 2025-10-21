@@ -47,19 +47,7 @@
 
                         <hr>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="text-muted">Unidade</h6>
-                                <p class="fw-bold">{{ $setor->unidade->nome ?? 'N/A' }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="text-muted">Cidade</h6>
-                                <p class="fw-bold">{{ $setor->unidade->cidade->nome ?? 'N/A' }} - {{ $setor->unidade->cidade->uf ?? '' }}</p>
-                            </div>
-                        </div>
-
                         @if($setor->descricao)
-                        <hr>
                         <div class="row">
                             <div class="col-12">
                                 <h6 class="text-muted">Descrição</h6>
@@ -72,12 +60,12 @@
 
                         <div class="row">
                             <div class="col-md-6">
-                                <h6 class="text-muted">Vagas Disponíveis</h6>
+                                <h6 class="text-muted">Vagas Configuradas</h6>
                                 <p class="fw-bold">{{ $setor->vagas->count() ?? 0 }}</p>
                             </div>
                             <div class="col-md-6">
-                                <h6 class="text-muted">Vagas Ativas</h6>
-                                <p class="fw-bold">{{ $setor->vagas->where('status', 'ativo')->count() ?? 0 }}</p>
+                                <h6 class="text-muted">Unidades Utilizando</h6>
+                                <p class="fw-bold">{{ $setor->vagas->unique('unidade_id')->count() ?? 0 }}</p>
                             </div>
                         </div>
 
@@ -101,23 +89,24 @@
                 @if($setor->vagas->count() > 0)
                 <div class="card mt-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Vagas do Setor</h5>
+                        <h5 class="mb-0">Configurações do Setor nas Unidades</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>Unidade</th>
                                         <th>Turno</th>
                                         <th>Horário</th>
+                                        <th>Médicos Necessários</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($setor->vagas as $vaga)
                                     <tr>
-                                        <td>{{ $vaga->id }}</td>
+                                        <td>{{ $vaga->unidade->nome ?? 'N/A' }}</td>
                                         <td>{{ $vaga->turno->nome ?? 'N/A' }}</td>
                                         <td>
                                             @if($vaga->turno)
@@ -125,6 +114,7 @@
                                             {{ date('H:i', strtotime($vaga->turno->hora_fim)) }}
                                             @endif
                                         </td>
+                                        <td class="text-center">{{ $vaga->quantidade_necessaria ?? 1 }}</td>
                                         <td>
                                             <span class="badge bg-{{ $vaga->status === 'ativo' ? 'success' : 'secondary' }}">
                                                 {{ ucfirst($vaga->status) }}

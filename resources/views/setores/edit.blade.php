@@ -32,18 +32,7 @@
                             <div class="mb-3">
                                 <label for="nome" class="form-label">Nome *</label>
                                 <input type="text" class="form-control" id="nome" name="nome" value="{{ old('nome') ?? $setor->nome }}" placeholder="Ex: UTI, Emergência, Cardiologia" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="unidade_id" class="form-label">Unidade *</label>
-                                <select class="form-select" id="unidade_id" name="unidade_id" required>
-                                    <option value="">Selecione uma unidade</option>
-                                    @foreach($unidades as $unidade)
-                                    <option value="{{ $unidade->id }}" {{ (old('unidade_id') ?? $setor->unidade_id) == $unidade->id ? 'selected' : '' }}>
-                                        {{ $unidade->nome }} - {{ $unidade->cidade->nome }}
-                                    </option>
-                                    @endforeach
-                                </select>
+                                <small class="text-muted">Este setor está disponível para todas as unidades do sistema</small>
                             </div>
 
                             <div class="mb-3">

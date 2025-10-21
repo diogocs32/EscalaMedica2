@@ -15,7 +15,6 @@ class Setor extends Model
     protected $fillable = [
         'nome',
         'descricao',
-        'unidade_id',
         'status'
     ];
 
@@ -25,7 +24,8 @@ class Setor extends Model
     ];
 
     /**
-     * Relacionamento: Um setor pode ter muitas vagas
+     * Relacionamento: Um setor pode ter muitas vagas (através de Unidade + Turno)
+     * Agora Setor é global e a relação com Unidade é feita através da tabela vagas
      */
     public function vagas(): HasMany
     {

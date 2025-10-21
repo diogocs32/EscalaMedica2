@@ -15,6 +15,7 @@ class Vaga extends Model
         'unidade_id',
         'setor_id',
         'turno_id',
+        'dia_semana',
         'quantidade_necessaria',
         'observacoes',
         'status',
