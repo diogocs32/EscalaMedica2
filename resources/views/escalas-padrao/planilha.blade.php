@@ -489,12 +489,6 @@
             const t2i = timeToMinutes(turno2Inicio);
             const t2f = timeToMinutes(turno2Fim);
 
-            // Se os horários são EXATAMENTE IGUAIS (mesmo turno, ex: Manhã 07-13 vs Manhã 07-13)
-            // NÃO há conflito - permite múltiplos slots no mesmo turno
-            if (t1i === t2i && t1f === t2f) {
-                return false;
-            }
-
             // Tratar turnos que passam da meia-noite (ex: 19:00-07:00)
             const t1f_ajustado = t1f < t1i ? t1f + 1440 : t1f;
             const t2f_ajustado = t2f < t2i ? t2f + 1440 : t2f;
@@ -502,6 +496,7 @@
             // Verificar sobreposição REAL (não apenas adjacência)
             // Turnos consecutivos (ex: 07:00-13:00 e 13:00-19:00) NÃO conflitam
             // Turnos sobrepostos (ex: 07:00-13:00 e 09:00-15:00) SIM conflitam
+            // IMPORTANTE: Esta função só é chamada para turnos DIFERENTES (verificação anterior já filtrou)
             return (t1i < t2f_ajustado && t1f_ajustado > t2i);
         }
 
@@ -553,17 +548,23 @@
                     // Ignorar se é o EXATO mesmo slot (mesma semana, dia, turno, setor E número)
                     if (s === semana && d === dia && t === turno && st === setor && slotN === slotNum) return false;
 
-                    // Pegar horário do turno da alocação existente
+                    // REGRA ESPECIAL: Se é o mesmo turno E mesmo setor (mas slot diferente)
+                    // PERMITIR múltiplas alocações (Buraco 1, Buraco 2, Buraco 3...)
+                    // Exemplo: Manhã UTI Buraco1 + Manhã UTI Buraco2 = OK
+                    if (t === turno && st === setor) {
+                        return false; // NÃO há conflito - pode alocar no mesmo turno/setor
+                    }
+
+                    // Se chegou aqui, é turno OU setor DIFERENTE - verificar sobreposição de horário
                     const outroSlot = document.querySelector(`[data-semana="${s}"][data-dia="${d}"][data-turno="${t}"][data-setor="${st}"][data-slot="${slotN}"]`);
                     if (!outroSlot) return false;
 
                     const outroInicio = outroSlot.dataset.turnoInicio;
                     const outroFim = outroSlot.dataset.turnoFim;
 
-                    // Verificar se há sobreposição REAL de horários
-                    // IMPORTANTE: Múltiplos buracos no MESMO turno (ex: Manhã Buraco1, Manhã Buraco2)
-                    // têm o MESMO horário, então temConflito retorna FALSE (não há sobreposição com si mesmo)
-                    // Mas turnos DIFERENTES com horários sobrepostos (Manhã 07-13 vs ManhãSup 09-15) retornam TRUE
+                    // Verificar se há sobreposição REAL de horários entre turnos DIFERENTES
+                    // Exemplo: Manhã 07-13h vs Manhã Suporte 09-15h = CONFLITO (sobreposição 09-13h)
+                    // Exemplo: Manhã 07-13h vs Tarde 13-19h = SEM CONFLITO (consecutivos)
                     const hasConflict = temConflito(turnoInicio, turnoFim, outroInicio, outroFim);
 
                     return hasConflict;
