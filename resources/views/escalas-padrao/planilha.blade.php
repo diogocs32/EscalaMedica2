@@ -489,12 +489,14 @@
             const t2i = timeToMinutes(turno2Inicio);
             const t2f = timeToMinutes(turno2Fim);
 
-            // Tratar turnos que passam da meia-noite
+            // Tratar turnos que passam da meia-noite (ex: 19:00-07:00)
             const t1f_ajustado = t1f < t1i ? t1f + 1440 : t1f;
             const t2f_ajustado = t2f < t2i ? t2f + 1440 : t2f;
 
-            // Verificar sobreposição
-            return !(t1f_ajustado <= t2i || t2f_ajustado <= t1i);
+            // Verificar sobreposição REAL (não apenas adjacência)
+            // Turnos consecutivos (ex: 07:00-13:00 e 13:00-19:00) NÃO conflitam
+            // Só há conflito se um turno COMEÇA ANTES do outro TERMINAR
+            return (t1i < t2f_ajustado && t1f_ajustado > t2i);
         }
 
         // Converter HH:MM para minutos
@@ -551,7 +553,12 @@
                 // Verificar conflitos de horário no mesmo dia
                 const temConflitoDia = Object.keys(alocacoes).some(k => {
                     const [s, d, t, st, slotN] = k.split('-');
+
+                    // Ignorar se não é mesmo dia, mesma semana ou mesmo plantonista
                     if (s !== semana || d !== dia || alocacoes[k] !== plantonistaSelecionado.id) return false;
+
+                    // Ignorar se é o próprio slot (comparando TODOS os atributos)
+                    if (t === turno && st === setor && slotN === slotNum) return false;
 
                     // Pegar horário do turno conflitante pelo slot exato
                     const outroSlot = document.querySelector(`[data-semana="${s}"][data-dia="${d}"][data-turno="${t}"][data-setor="${st}"][data-slot="${slotN}"]`);
@@ -560,7 +567,10 @@
                     const outroInicio = outroSlot.dataset.turnoInicio;
                     const outroFim = outroSlot.dataset.turnoFim;
 
-                    return temConflito(turnoInicio, turnoFim, outroInicio, outroFim);
+                    // Só retorna true se REALMENTE houver sobreposição de horários
+                    const hasConflict = temConflito(turnoInicio, turnoFim, outroInicio, outroFim);
+
+                    return hasConflict;
                 });
 
                 if (temConflitoDia) {
