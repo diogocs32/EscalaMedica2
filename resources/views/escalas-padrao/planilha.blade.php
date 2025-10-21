@@ -550,11 +550,11 @@
 
                 // Verificar conflitos de horário no mesmo dia
                 const temConflitoDia = Object.keys(alocacoes).some(k => {
-                    const [s, d, t] = k.split('-');
+                    const [s, d, t, st, slotN] = k.split('-');
                     if (s !== semana || d !== dia || alocacoes[k] !== plantonistaSelecionado.id) return false;
 
-                    // Pegar horário do turno conflitante
-                    const outroSlot = document.querySelector(`[data-semana="${s}"][data-dia="${d}"][data-turno="${t}"]`);
+                    // Pegar horário do turno conflitante pelo slot exato
+                    const outroSlot = document.querySelector(`[data-semana="${s}"][data-dia="${d}"][data-turno="${t}"][data-setor="${st}"][data-slot="${slotN}"]`);
                     if (!outroSlot) return false;
 
                     const outroInicio = outroSlot.dataset.turnoInicio;
