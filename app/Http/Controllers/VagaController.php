@@ -29,17 +29,15 @@ class VagaController extends Controller
      */
     public function create(Unidade $unidade, Request $request)
     {
-        // Buscar apenas setores já associados a esta unidade (que já têm vagas cadastradas)
-        $setoresIds = $unidade->vagas()->distinct()->pluck('setor_id');
-        $setores = Setor::whereIn('id', $setoresIds)
-            ->where('status', 'ativo')
+        // Buscar TODOS os setores ativos disponíveis
+        $setores = Setor::where('status', 'ativo')
             ->orderBy('nome')
             ->get();
 
-        // Usar turnos selecionados via pivot para esta unidade; se nenhum, mostrar todos ativos
-        $turnos = $unidade->turnos()->exists()
-            ? $unidade->turnos()->orderBy('hora_inicio')->get()
-            : Turno::where('status', 'ativo')->orderBy('hora_inicio')->get();
+        // Buscar TODOS os turnos ativos disponíveis
+        $turnos = Turno::where('status', 'ativo')
+            ->orderBy('hora_inicio')
+            ->get();
         $dias = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
         $diaSelecionado = $request->get('dia', 'segunda');
         // Buscar combinações já existentes para evitar duplicatas

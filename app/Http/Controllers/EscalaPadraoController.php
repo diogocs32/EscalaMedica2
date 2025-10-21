@@ -250,11 +250,8 @@ class EscalaPadraoController extends Controller
             ->with(['configuracoes.turno', 'configuracoes.setor'])
             ->firstOrFail();
 
-        // Buscar turnos e setores disponíveis
-        $turnos = $unidade->turnos()->exists()
-            ? $unidade->turnos()->orderBy('hora_inicio')->get()
-            : Turno::where('status', 'ativo')->orderBy('hora_inicio')->get();
-
+        // Buscar TODOS os turnos e setores ativos (não filtrar por unidade)
+        $turnos = Turno::where('status', 'ativo')->orderBy('hora_inicio')->get();
         $setores = Setor::where('status', 'ativo')->orderBy('nome')->get();
 
         // Combos já configurados
