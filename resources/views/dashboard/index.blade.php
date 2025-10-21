@@ -28,6 +28,16 @@
             transform: translateX(5px);
         }
 
+        .sidebar .nav-link.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .sidebar .nav-link.disabled:hover {
+            background: transparent;
+            transform: none;
+        }
+
         .stats-card {
             border: none;
             border-radius: 16px;
@@ -95,6 +105,31 @@
             <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">
                 <i class="bi bi-calendar-heart me-2"></i>Sistema de Escalas Médicas
             </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Alternar navegação">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('schedule-patterns') }}"><i class="bi bi-diagram-3 me-1"></i>Padrões de Escala</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('cidades.index') }}"><i class="bi bi-geo-alt me-1"></i>Cidades</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('unidades.index') }}"><i class="bi bi-hospital me-1"></i>Unidades</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('setores.index') }}"><i class="bi bi-diagram-3 me-1"></i>Setores</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('turnos.index') }}"><i class="bi bi-clock-history me-1"></i>Turnos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('escalas-padrao.index', ['unidade' => 1]) }}"><i class="bi bi-grid-3x3-gap me-1"></i>Escala Padrão</a>
+                    </li>
+                </ul>
+            </div>
             <div class="navbar-nav ms-auto">
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
@@ -124,13 +159,10 @@
                     <a class="nav-link" href="{{ route('alocacoes.index') }}">
                         <i class="bi bi-calendar-check me-2"></i>Escalas
                     </a>
-                    <a class="nav-link" href="#">
-                        <i class="bi bi-calendar-range me-2"></i>Padrões de Escala
-                    </a>
-                    <a class="nav-link" href="#">
+                    <a class="nav-link" href="{{ route('cidades.index') }}">
                         <i class="bi bi-geo-alt me-2"></i>Cidades
                     </a>
-                    <a class="nav-link" href="#">
+                    <a class="nav-link" href="{{ route('unidades.index') }}">
                         <i class="bi bi-building me-2"></i>Unidades
                     </a>
                     <a class="nav-link" href="{{ route('setores.index') }}">
@@ -139,13 +171,21 @@
                     <a class="nav-link" href="{{ route('turnos.index') }}">
                         <i class="bi bi-clock me-2"></i>Turnos
                     </a>
-                    <a class="nav-link" href="#">
+                    <a class="nav-link" href="{{ route('plantonistas.index') }}">
                         <i class="bi bi-people me-2"></i>Plantonistas
                     </a>
-                    <a class="nav-link" href="#">
+
+                    <hr class="my-3 opacity-50">
+
+                    <a class="nav-link" href="{{ route('schedule-patterns') }}">
+                        <i class="bi bi-calendar-range me-2"></i>Padrões de Escala
+                    </a>
+
+                    <small class="text-white-50 px-3 mb-2 d-block mt-3">EM BREVE</small>
+                    <a class="nav-link disabled" href="#" title="Em desenvolvimento">
                         <i class="bi bi-people-fill me-2"></i>Grupos de Acesso
                     </a>
-                    <a class="nav-link" href="#">
+                    <a class="nav-link disabled" href="#" title="Em desenvolvimento">
                         <i class="bi bi-bar-chart me-2"></i>Relatórios
                     </a>
                     <a class="nav-link" href="#">
@@ -213,7 +253,7 @@
                         <h5 class="mb-3"><i class="bi bi-lightning-charge me-2"></i>Acesso Rápido</h5>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <div class="card quick-access-card" onclick="window.location='{{ route('alocacoes.index') }}'">
+                        <div class="card quick-access-card" onclick="window.location.href='{{ route('alocacoes.index') }}';">
                             <div class="card-body text-center py-4">
                                 <i class="bi bi-calendar-check text-primary mb-3" style="font-size: 3rem;"></i>
                                 <h6 class="card-title">Ver Escalas</h6>
@@ -222,7 +262,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <div class="card quick-access-card" onclick="window.location='#'">
+                        <div class="card quick-access-card" onclick="window.location.href='#';">
                             <div class="card-body text-center py-4">
                                 <i class="bi bi-arrow-left-right text-warning mb-3" style="font-size: 3rem;"></i>
                                 <h6 class="card-title">Marketplace</h6>
@@ -231,7 +271,7 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <div class="card quick-access-card" onclick="window.location='#'">
+                        <div class="card quick-access-card" onclick="window.location.href='#';">
                             <div class="card-body text-center py-4">
                                 <i class="bi bi-bar-chart text-info mb-3" style="font-size: 3rem;"></i>
                                 <h6 class="card-title">Relatórios</h6>
