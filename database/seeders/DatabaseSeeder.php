@@ -19,5 +19,15 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Seeders do sistema de escalas médicas
+        $this->call([
+            CidadeSeeder::class,
+            UnidadeSeeder::class,
+            SetorSeeder::class,
+            TurnoSeeder::class,
+            PlantonistaSeeder::class,
+            VagaSeeder::class,
+        ]);
     }
 }

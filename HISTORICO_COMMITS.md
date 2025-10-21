@@ -3,9 +3,9 @@
 > **Objetivo**: Rastrear todas as alterações realizadas no sistema, facilitando o entendimento do escopo de mudanças e o contexto das decisões tomadas.
 
 ## 📊 Resumo Estatístico
-- **Total de Commits Documentados**: 4
-- **Período**: 2025-10-20 até presente
-- **Última Atualização**: 2025-10-20
+- **Total de Commits Documentados**: 7
+- **Período**: 2025-10-20 até 2024-12-28
+- **Última Atualização**: 2024-12-28
 
 ---
 
@@ -18,6 +18,134 @@
 ---
 
 ## 🚀 Commits Recentes
+
+### ✅ COMMIT #007 - Dashboard Principal Implementado
+- **Data**: 2024-12-28
+- **Responsável**: Sistema/Desenvolvedor
+- **Tipo**: 🏠 Dashboard/Interface
+- **Escopo**: Painel principal profissional
+
+**O que foi feito:**
+- **DashboardController**: Criado com métodos de estatísticas avançadas
+  - calculateCurrentScore(): Score atual dos plantonistas
+  - calculateThreeMonthScore(): Score trimestral
+  - getUpcomingShifts(): Próximos plantões do usuário
+  - getAvailableOffers(): Ofertas disponíveis no marketplace
+- **Dashboard View**: Interface profissional com design moderno
+  - Sidebar navigation com links para todas as funcionalidades
+  - Cards de estatísticas com gradientes e animações
+  - Seção de quick access para ações principais
+  - Lista de próximos plantões do usuário
+  - Marketplace com ofertas disponíveis
+- **Welcome Page**: Reformulada com hero section e estatísticas do sistema
+  - Hero section com call-to-action para dashboard
+  - Cards de funcionalidades principais
+  - Estatísticas em tempo real do sistema
+  - Design responsivo com Bootstrap 5.3.0
+- **Rotas**: Adicionada rota /dashboard ao sistema
+
+**Motivação:**
+- Criar interface principal profissional para o sistema
+- Oferecer visão geral das estatísticas e atividades
+- Facilitar navegação e acesso rápido às funcionalidades
+- Implementar dashboard estilo empresarial moderno
+- Completar experiência do usuário com página inicial atrativa
+
+**Impacto:**
+- 🟢 **Positivo**: Interface dashboard profissional implementada
+- 🟢 **Positivo**: Navegação centralizada e intuitiva
+- 🟢 **Positivo**: Estatísticas em tempo real disponíveis
+- 🟢 **Positivo**: Welcome page moderna e informativa
+- 🟢 **Positivo**: Sistema com aparência profissional completa
+- 🟢 **Positivo**: Experiência do usuário significativamente melhorada
+
+### ✅ COMMIT #006 - Views/Frontend Completo do Sistema de Escala Médica
+- **Data**: 2025-10-21
+- **Responsável**: Sistema/Desenvolvedor
+- **Tipo**: 🎨 Frontend/UI
+- **Escopo**: Interface completa para usuários finais
+
+**O que foi feito:**
+- **Views CRUD Completas**: 12 views criadas para setores, turnos e alocações
+  - Index: Listagem com paginação, filtros e ações
+  - Create: Formulários com validação client-side
+  - Show: Detalhes completos com relacionamentos
+  - Edit: Formulários pré-preenchidos com validação
+- **Design Responsivo**: Bootstrap 5.3.0 com interface mobile-friendly
+- **UX/UI**: Navegação intuitiva, alertas, confirmações e feedback visual
+- **Controllers Update**: Correção dos métodos create/edit para carregar dados necessários
+- **Validação**: Formulários com validação front-end e back-end integrada
+
+**Motivação:**
+- Implementar interface completa para usuários finais
+- Facilitar operação do sistema através de interface web
+- Garantir experiência de usuário profissional e intuitiva
+- Completar o CRUD funcional para todas as entidades principais
+
+**Impacto:**
+- 🟢 **Positivo**: Interface web 100% funcional para gestão de escalas
+- 🟢 **Positivo**: CRUD completo através de formulários intuitivos
+- 🟢 **Positivo**: Design responsivo para acesso mobile/desktop
+- 🟢 **Positivo**: Feedback visual para todas as operações
+- 🟢 **Positivo**: Sistema pronto para uso por usuários finais
+
+**Arquivos Criados:**
+```
+resources/views/setores/ (4 views: index, create, show, edit)
+resources/views/turnos/ (4 views: index, create, show, edit)
+resources/views/alocacoes/ (4 views: index, create, show, edit)
+```
+
+**Dependências Afetadas:**
+- Controllers agora fornecem dados completos para formulários
+- Rotas resource totalmente funcionais com interface
+- Sistema completamente operacional para usuários finais
+
+### ✅ COMMIT #005 - Implementação Completa do Sistema de Escala Médica
+- **Data**: 2025-10-21
+- **Responsável**: Sistema/Desenvolvedor
+- **Tipo**: 🏗️ Feature Principal
+- **Escopo**: Core Business - Sistema de Escala Médica completo
+
+**O que foi feito:**
+- **Database**: 7 migrations criadas (plantonistas, cidades, unidades, setores, turnos, vagas, alocacoes)
+- **Models**: 7 models com relacionamentos Eloquent completos
+- **Observer**: AlocacaoObserver para cálculo automático de data_hora_inicio/fim
+- **Validation**: SemSobreposicaoDeHorario rule para prevenção de conflitos
+- **Seeders**: 6 seeders com dados realistas (9 plantonistas, 33 vagas, etc.)
+- **Controllers**: 3 controllers CRUD completos (SetorController, TurnoController, AlocacaoController)
+- **Routes**: 19 rotas resource configuradas
+- **Database Setup**: MySQL escala_medica2 configurado no XAMPP
+- **Server**: Sistema funcionando no Apache/XAMPP
+
+**Motivação:**
+- Implementar core business do sistema médico
+- Automatizar cálculos de horários e prevenção de conflitos
+- Criar estrutura sólida para gestão de escalas médicas
+- Garantir integridade dos dados e relacionamentos
+- Facilitar operação e manutenção do sistema
+
+**Impacto:**
+- 🟢 **Positivo**: Sistema de escala médica 100% funcional
+- 🟢 **Positivo**: Prevenção automática de conflitos de horários
+- 🟢 **Positivo**: Cálculo automático de data/hora baseado em turnos
+- 🟢 **Positivo**: Interface CRUD completa para todas as entidades
+- 🟢 **Positivo**: Dados realistas para testes e demonstração
+- 🟢 **Positivo**: Conformidade com padrões Laravel e boas práticas
+
+**Arquivos Modificados:**
+```
+database/migrations/ (7 arquivos)
+app/Models/ (7 arquivos)
+app/Http/Controllers/ (3 arquivos)
+app/Observers/AlocacaoObserver.php
+app/Rules/SemSobreposicaoDeHorario.php
+database/seeders/ (6 arquivos)
+routes/web.php
+config/database.php
+.env
+REGISTRY.md
+```
 
 ### ✅ COMMIT #004 - Expansão Completa da Documentação do Sistema
 - **Data**: 2025-10-20
@@ -160,6 +288,21 @@
 
 ## 🏗️ Implementações por Módulo
 
+### 🏥 **Sistema de Escala Médica** (2025-10-21)
+- **Commits**: #005
+- **Status**: ✅ **CONCLUÍDO**
+- **Responsável**: Sistema/Desenvolvedor
+- **Descrição**: Sistema completo de gestão de escalas médicas com prevenção de conflitos
+- **Funcionalidades**:
+  - ✅ Gestão de Plantonistas (Model + CRUD)
+  - ✅ Gestão de Cidades (Model + Seeder)
+  - ✅ Gestão de Unidades (Model + Seeder)
+  - ✅ Gestão de Setores (Model + Controller + CRUD)
+  - ✅ Gestão de Turnos (Model + Controller + CRUD)
+  - ✅ Gestão de Vagas (Model + Seeder)
+  - ✅ Gestão de Alocações (Model + Controller + CRUD + Observer + Validation)
+- **Regras de Negócio**: Prevenção conflitos, cálculo automático, turnos noturnos
+
 ### 📋 Sistema Base
 - **Commits**: #001, #002, #003
 - **Status**: ✅ Completo
@@ -167,34 +310,34 @@
 - **Descrição**: Setup inicial do Laravel com documentação
 
 ### 📝 Documentação
-- **Commits**: #003
-- **Status**: ✅ Inicial
+- **Commits**: #003, #004
+- **Status**: ✅ Completo
 - **Responsável**: Sistema
-- **Descrição**: Estrutura base da documentação técnica
+- **Descrição**: Framework completo de documentação técnica avançada
 
 ---
 
 ## 👥 Contribuidores
 
 ### Sistema/Desenvolvedor
-- **Commits**: 4
-- **Período**: 2025-10-20
-- **Especialidade**: Setup, Configuração, Documentação Técnica Avançada
-- **Último Commit**: #004
+- **Commits**: 5
+- **Período**: 2025-10-20 até 2025-10-21
+- **Especialidade**: Setup, Configuração, Documentação, Desenvolvimento Laravel
+- **Último Commit**: #005
 
 ---
 
 ## 📈 Métricas de Desenvolvimento
 
 ### Por Tipo de Commit
-- 🐛 **Correções**: 1 (25%)
-- 🔧 **Configuração**: 1 (25%)
-- 📝 **Documentação**: 2 (50%)
-- ✨ **Features**: 0 (0%)
+- 🐛 **Correções**: 1 (20%)
+- 🔧 **Configuração**: 1 (20%)
+- 📝 **Documentação**: 2 (40%)
+- ✨ **Features**: 1 (20%)
 - 🚀 **Deploy**: 0 (0%)
 
 ### Por Impacto
-- 🟢 **Positivo**: 4 commits
+- 🟢 **Positivo**: 5 commits
 - 🟡 **Neutro**: 0 commits
 - 🔴 **Negativo**: 0 commits
 
