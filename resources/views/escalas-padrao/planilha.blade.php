@@ -71,6 +71,15 @@
             background: rgba(220, 53, 69, .08);
             color: #dc3545;
             border: 1px solid rgba(220, 53, 69, .25);
+            display: block;
+            font-size: .7rem;
+            padding: .25rem .5rem;
+            border-radius: 4px;
+        }
+
+        td {
+            vertical-align: middle;
+            padding: .4rem;
         }
 
         .table-responsive {
@@ -97,6 +106,86 @@
         .week-block {
             scroll-margin-top: 80px;
         }
+
+        /* Atribuição Rápida */
+        .badge-slot {
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .badge-slot:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+        }
+
+        .badge-slot.disponivel {
+            background: rgba(25, 135, 84, .12);
+            color: #198754;
+            border-color: rgba(25, 135, 84, .35);
+            animation: pulse 2s infinite;
+        }
+
+        .badge-slot.indisponivel {
+            background: rgba(108, 117, 125, .08);
+            color: #6c757d;
+            border-color: rgba(108, 117, 125, .2);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .badge-slot.ocupado {
+            background: rgba(13, 110, 253, .12);
+            color: #0d6efd;
+            border-color: rgba(13, 110, 253, .35);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .plantonista-selecionado {
+            background: #d1e7dd;
+            border: 2px solid #198754;
+        }
+
+        .search-plantonista {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1000;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .plantonista-card {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .plantonista-card:hover {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        .plantonista-card.selected {
+            background: #d1e7dd;
+            border-color: #198754;
+        }
+
+        .info-badge {
+            font-size: .7rem;
+            padding: .2rem .4rem;
+        }
     </style>
 </head>
 
@@ -111,7 +200,7 @@
                 <a href="{{ route('schedule-patterns') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left"></i> Voltar
                 </a>
-                <button class="btn btn-success btn-sm" disabled title="Em breve">
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalAtribuicaoRapida">
                     <i class="bi bi-lightning-charge"></i> Atribuição Rápida
                 </button>
             </div>
@@ -191,10 +280,21 @@
                             @endphp
                             <td class="text-center">
                                 @if($qtd > 0)
-                                <span class="badge badge-soft">Buraco ({{ $qtd }})</span>
-                                @else
-                                <span class="cell-empty">0</span>
-                                @endif
+                                @for($i = 1; $i <= $qtd; $i++)
+                                    <span class="badge badge-soft badge-slot mb-1"
+                                    data-semana="{{ $sem }}"
+                                    data-dia="{{ $dKey }}"
+                                    data-turno="{{ $tId }}"
+                                    data-setor="{{ $sId }}"
+                                    data-slot="{{ $i }}"
+                                    data-turno-inicio="{{ $info['turno']->hora_inicio }}"
+                                    data-turno-fim="{{ $info['turno']->hora_fim }}">
+                                    Buraco {{ $i }}
+                                    </span>
+                                    @endfor
+                                    @else
+                                    <span class="cell-empty">—</span>
+                                    @endif
                             </td>
                             @endforeach
                             @endforeach
@@ -208,7 +308,283 @@
         @endforeach
     </div>
 
+    <!-- Modal Atribuição Rápida -->
+    <div class="modal fade" id="modalAtribuicaoRapida" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-lightning-charge text-success me-2"></i>
+                        Atribuição Rápida de Plantonistas
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="search-plantonista mb-3">
+                        <label class="form-label fw-semibold">Buscar Plantonista</label>
+                        <input type="text" id="searchPlantonista" class="form-control" placeholder="Digite o nome, CRM ou especialidade...">
+                        <div class="mt-2">
+                            <span class="badge bg-success-subtle text-success border info-badge">
+                                <i class="bi bi-check-circle"></i> Disponível
+                            </span>
+                            <span class="badge bg-secondary-subtle text-secondary border info-badge ms-2">
+                                <i class="bi bi-x-circle"></i> Conflito de horário
+                            </span>
+                            <span class="badge bg-primary-subtle text-primary border info-badge ms-2">
+                                <i class="bi bi-person-check"></i> Já alocado
+                            </span>
+                        </div>
+                    </div>
+
+                    <div id="listaPlantonistas" class="row g-2">
+                        <div class="col-12 text-center text-muted py-5">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            Carregando plantonistas...
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="text-muted small me-auto">
+                        Clique em um plantonista e depois nos slots disponíveis na planilha
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Estado global
+        let plantonistaSelecionado = null;
+        let plantonistas = [];
+        let alocacoes = {}; // {semana-dia-turno-setor-slot: plantonista_id}
+
+        // Carregar plantonistas ao abrir modal
+        document.getElementById('modalAtribuicaoRapida').addEventListener('show.bs.modal', function() {
+            carregarPlantonistas();
+        });
+
+        // Função para carregar plantonistas
+        async function carregarPlantonistas() {
+            try {
+                const response = await fetch('/api/plantonistas-ativos');
+                plantonistas = await response.json();
+                renderizarPlantonistas(plantonistas);
+            } catch (error) {
+                console.error('Erro ao carregar plantonistas:', error);
+                document.getElementById('listaPlantonistas').innerHTML =
+                    '<div class="col-12 text-center text-danger py-3">Erro ao carregar plantonistas</div>';
+            }
+        }
+
+        // Renderizar lista de plantonistas
+        function renderizarPlantonistas(lista) {
+            const container = document.getElementById('listaPlantonistas');
+            if (lista.length === 0) {
+                container.innerHTML = '<div class="col-12 text-center text-muted py-3">Nenhum plantonista encontrado</div>';
+                return;
+            }
+
+            container.innerHTML = lista.map(p => `
+                <div class="col-md-6">
+                    <div class="plantonista-card p-3 rounded border" onclick="selecionarPlantonista(${p.id})">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">${p.nome}</h6>
+                                <div class="small text-muted">
+                                    <div><i class="bi bi-card-text me-1"></i>CRM: ${p.crm || 'N/D'}</div>
+                                    <div><i class="bi bi-heart-pulse me-1"></i>${p.especialidade || 'N/D'}</div>
+                                </div>
+                            </div>
+                            <i class="bi bi-check-circle text-success" style="font-size: 1.5rem; display: none;"></i>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Busca de plantonistas
+        document.getElementById('searchPlantonista').addEventListener('input', function(e) {
+            const termo = e.target.value.toLowerCase();
+            const filtrados = plantonistas.filter(p =>
+                p.nome.toLowerCase().includes(termo) ||
+                (p.crm && p.crm.toLowerCase().includes(termo)) ||
+                (p.especialidade && p.especialidade.toLowerCase().includes(termo))
+            );
+            renderizarPlantonistas(filtrados);
+
+            // Re-selecionar se estava selecionado
+            if (plantonistaSelecionado) {
+                const card = document.querySelector(`.plantonista-card[onclick*="${plantonistaSelecionado.id}"]`)?.parentElement;
+                if (card) {
+                    card.querySelector('.plantonista-card').classList.add('selected');
+                    card.querySelector('.bi-check-circle').style.display = 'block';
+                }
+            }
+        });
+
+        // Selecionar plantonista
+        function selecionarPlantonista(id) {
+            const plantonista = plantonistas.find(p => p.id === id);
+            if (!plantonista) return;
+
+            // Remover seleção anterior
+            document.querySelectorAll('.plantonista-card').forEach(card => {
+                card.classList.remove('selected');
+                card.querySelector('.bi-check-circle').style.display = 'none';
+            });
+
+            // Adicionar nova seleção
+            const card = event.target.closest('.plantonista-card');
+            card.classList.add('selected');
+            card.querySelector('.bi-check-circle').style.display = 'block';
+
+            plantonistaSelecionado = plantonista;
+
+            // Atualizar visualização dos slots
+            atualizarSlotsDisponiveis();
+
+            // Fechar modal
+            bootstrap.Modal.getInstance(document.getElementById('modalAtribuicaoRapida')).hide();
+        }
+
+        // Verificar conflito de horário entre turnos
+        function temConflito(turno1Inicio, turno1Fim, turno2Inicio, turno2Fim) {
+            const t1i = timeToMinutes(turno1Inicio);
+            const t1f = timeToMinutes(turno1Fim);
+            const t2i = timeToMinutes(turno2Inicio);
+            const t2f = timeToMinutes(turno2Fim);
+
+            // Tratar turnos que passam da meia-noite
+            const t1f_ajustado = t1f < t1i ? t1f + 1440 : t1f;
+            const t2f_ajustado = t2f < t2i ? t2f + 1440 : t2f;
+
+            // Verificar sobreposição
+            return !(t1f_ajustado <= t2i || t2f_ajustado <= t1i);
+        }
+
+        // Converter HH:MM para minutos
+        function timeToMinutes(time) {
+            if (!time) return 0;
+            const [h, m] = time.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        // Atualizar visualização dos slots disponíveis
+        function atualizarSlotsDisponiveis() {
+            if (!plantonistaSelecionado) {
+                // Resetar todos os slots
+                document.querySelectorAll('.badge-slot').forEach(slot => {
+                    slot.classList.remove('disponivel', 'indisponivel', 'ocupado');
+                });
+                return;
+            }
+
+            // Para cada slot, verificar disponibilidade
+            document.querySelectorAll('.badge-slot').forEach(slot => {
+                const semana = slot.dataset.semana;
+                const dia = slot.dataset.dia;
+                const turno = slot.dataset.turno;
+                const setor = slot.dataset.setor;
+                const slotNum = slot.dataset.slot;
+                const turnoInicio = slot.dataset.turnoInicio;
+                const turnoFim = slot.dataset.turnoFim;
+
+                const key = `${semana}-${dia}-${turno}-${setor}-${slotNum}`;
+
+                // Verificar se já está ocupado
+                if (alocacoes[key]) {
+                    slot.classList.remove('disponivel', 'indisponivel');
+                    slot.classList.add('ocupado');
+                    const plantonista = plantonistas.find(p => p.id === alocacoes[key]);
+                    slot.textContent = plantonista ? plantonista.nome.split(' ')[0] : 'Ocupado';
+                    return;
+                }
+
+                // Verificar se o plantonista já está alocado neste dia/turno/setor
+                const jaAlocadoMesmoSlot = Object.keys(alocacoes).some(k => {
+                    const [s, d, t, st] = k.split('-');
+                    return s === semana && d === dia && t === turno && st === setor && alocacoes[k] === plantonistaSelecionado.id;
+                });
+
+                if (jaAlocadoMesmoSlot) {
+                    slot.classList.remove('disponivel', 'ocupado');
+                    slot.classList.add('indisponivel');
+                    slot.title = 'Plantonista já alocado neste turno/setor';
+                    return;
+                }
+
+                // Verificar conflitos de horário no mesmo dia
+                const temConflitoDia = Object.keys(alocacoes).some(k => {
+                    const [s, d, t] = k.split('-');
+                    if (s !== semana || d !== dia || alocacoes[k] !== plantonistaSelecionado.id) return false;
+
+                    // Pegar horário do turno conflitante
+                    const outroSlot = document.querySelector(`[data-semana="${s}"][data-dia="${d}"][data-turno="${t}"]`);
+                    if (!outroSlot) return false;
+
+                    const outroInicio = outroSlot.dataset.turnoInicio;
+                    const outroFim = outroSlot.dataset.turnoFim;
+
+                    return temConflito(turnoInicio, turnoFim, outroInicio, outroFim);
+                });
+
+                if (temConflitoDia) {
+                    slot.classList.remove('disponivel', 'ocupado');
+                    slot.classList.add('indisponivel');
+                    slot.title = 'Conflito de horário com outro turno';
+                    return;
+                }
+
+                // Disponível
+                slot.classList.remove('indisponivel', 'ocupado');
+                slot.classList.add('disponivel');
+                slot.title = 'Clique para alocar ' + plantonistaSelecionado.nome;
+            });
+        }
+
+        // Alocar plantonista ao clicar no slot
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('badge-slot')) return;
+            if (!plantonistaSelecionado) {
+                alert('Selecione um plantonista primeiro usando o botão "Atribuição Rápida"');
+                return;
+            }
+
+            const slot = e.target;
+
+            // Verificar se está disponível
+            if (slot.classList.contains('indisponivel')) {
+                alert('Este slot não está disponível para o plantonista selecionado');
+                return;
+            }
+
+            if (slot.classList.contains('ocupado')) {
+                // Desalocar
+                const key = `${slot.dataset.semana}-${slot.dataset.dia}-${slot.dataset.turno}-${slot.dataset.setor}-${slot.dataset.slot}`;
+                delete alocacoes[key];
+                slot.classList.remove('ocupado');
+                slot.textContent = `Buraco ${slot.dataset.slot}`;
+                atualizarSlotsDisponiveis();
+                return;
+            }
+
+            // Alocar
+            const key = `${slot.dataset.semana}-${slot.dataset.dia}-${slot.dataset.turno}-${slot.dataset.setor}-${slot.dataset.slot}`;
+            alocacoes[key] = plantonistaSelecionado.id;
+
+            slot.classList.remove('disponivel');
+            slot.classList.add('ocupado');
+            slot.textContent = plantonistaSelecionado.nome.split(' ')[0];
+            slot.title = plantonistaSelecionado.nome;
+
+            // Atualizar disponibilidade
+            atualizarSlotsDisponiveis();
+        });
+    </script>
 </body>
 
 </html>

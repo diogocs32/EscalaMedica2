@@ -82,3 +82,6 @@ Route::put('/unidades/{unidade}/escala-padrao/configuracao/{configuracao}', [Esc
 
 // Rotas para Alocações
 Route::resource('alocacoes', AlocacaoController::class);
+
+// API para Atribuição Rápida
+Route::get('/api/plantonistas-ativos', [PlantonisταController::class, 'apiAtivos'])->name('api.plantonistas.ativos');

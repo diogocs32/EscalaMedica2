@@ -142,4 +142,16 @@ class PlantonisταController extends Controller
                 ->withErrors(['error' => 'Erro ao remover plantonista: ' . $e->getMessage()]);
         }
     }
+
+    /**
+     * API: Retorna plantonistas ativos para atribuição rápida
+     */
+    public function apiAtivos()
+    {
+        $plantonistas = Plantonista::where('status', 'ativo')
+            ->orderBy('nome')
+            ->get(['id', 'nome', 'crm', 'especialidade']);
+
+        return response()->json($plantonistas);
+    }
 }
