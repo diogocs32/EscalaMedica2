@@ -482,12 +482,17 @@
         // Botão limpar seleção
         $('#btnLimparSelecao').on('click', limparSelecao);
 
-        // Verificar conflito de horário entre turnos
+        // Verificar conflito de horário entre turnos (ou janelas de tempo)
         function temConflito(turno1Inicio, turno1Fim, turno2Inicio, turno2Fim) {
             const t1i = timeToMinutes(turno1Inicio);
             const t1f = timeToMinutes(turno1Fim);
             const t2i = timeToMinutes(turno2Inicio);
             const t2f = timeToMinutes(turno2Fim);
+
+            console.log('  📊 Conversão:', {
+                turno1: `${turno1Inicio} (${t1i}min) - ${turno1Fim} (${t1f}min)`,
+                turno2: `${turno2Inicio} (${t2i}min) - ${turno2Fim} (${t2f}min)`
+            });
 
             // Tratar turnos que passam da meia-noite (ex: 19:00-07:00)
             const t1f_ajustado = t1f < t1i ? t1f + 1440 : t1f;
@@ -496,14 +501,27 @@
             // Verificar sobreposição REAL (não apenas adjacência)
             // Turnos consecutivos (ex: 07:00-13:00 e 13:00-19:00) NÃO conflitam
             // Turnos sobrepostos (ex: 07:00-13:00 e 09:00-15:00) SIM conflitam
-            // IMPORTANTE: Esta função só é chamada para turnos DIFERENTES (verificação anterior já filtrou)
-            return (t1i < t2f_ajustado && t1f_ajustado > t2i);
+            // Observação: também detecta conflito quando os intervalos são idênticos (mesmo turno/janela)
+            const hasOverlap = (t1i < t2f_ajustado && t1f_ajustado > t2i);
+            console.log('  🔢 Resultado:', hasOverlap ? 'CONFLITO' : 'SEM CONFLITO');
+
+            return hasOverlap;
         }
 
-        // Converter HH:MM para minutos
+        // Converter HH:MM para minutos (aceita também datetime completo)
         function timeToMinutes(time) {
             if (!time) return 0;
-            const [h, m] = time.split(':').map(Number);
+
+            // Se for datetime completo (2025-10-21 09:00:00), extrair apenas a hora
+            if (time.includes(' ')) {
+                time = time.split(' ')[1]; // Pega "09:00:00"
+            }
+
+            // Extrair apenas HH:MM (ignorar segundos se houver)
+            const parts = time.split(':');
+            const h = parseInt(parts[0]);
+            const m = parseInt(parts[1]);
+
             return h * 60 + m;
         }
 
@@ -548,24 +566,34 @@
                     // Ignorar se é o EXATO mesmo slot (mesma semana, dia, turno, setor E número)
                     if (s === semana && d === dia && t === turno && st === setor && slotN === slotNum) return false;
 
-                    // REGRA ESPECIAL: Se é o mesmo turno E mesmo setor (mas slot diferente)
-                    // PERMITIR múltiplas alocações (Buraco 1, Buraco 2, Buraco 3...)
-                    // Exemplo: Manhã UTI Buraco1 + Manhã UTI Buraco2 = OK
-                    if (t === turno && st === setor) {
-                        return false; // NÃO há conflito - pode alocar no mesmo turno/setor
-                    }
-
-                    // Se chegou aqui, é turno OU setor DIFERENTE - verificar sobreposição de horário
+                    // REGRA ATUALIZADA: NUNCA permitir duplicidade do mesmo plantonista em janelas que se sobrepõem,
+                    // inclusive quando for o mesmo turno e mesmo setor (buracos diferentes). Ou seja, se os intervalos
+                    // forem iguais (mesmo turno) ou tiverem qualquer sobreposição, deve BLOQUEAR.
+                    // Abaixo verificamos a sobreposição de horário entre o slot atual e o já alocado.
                     const outroSlot = document.querySelector(`[data-semana="${s}"][data-dia="${d}"][data-turno="${t}"][data-setor="${st}"][data-slot="${slotN}"]`);
-                    if (!outroSlot) return false;
+                    if (!outroSlot) {
+                        console.warn('⚠️ Slot não encontrado:', s, d, t, st, slotN);
+                        return false;
+                    }
 
                     const outroInicio = outroSlot.dataset.turnoInicio;
                     const outroFim = outroSlot.dataset.turnoFim;
 
-                    // Verificar se há sobreposição REAL de horários entre turnos DIFERENTES
-                    // Exemplo: Manhã 07-13h vs Manhã Suporte 09-15h = CONFLITO (sobreposição 09-13h)
-                    // Exemplo: Manhã 07-13h vs Tarde 13-19h = SEM CONFLITO (consecutivos)
+                    console.log('🔍 Verificando conflito:');
+                    console.log('  Slot atual:', turno, setor, turnoInicio + '-' + turnoFim);
+                    console.log('  Já alocado:', t, st, outroInicio + '-' + outroFim);
+
+                    // BLOQUEIA se houver sobreposição de horário (inclui intervalos idênticos)
+                    // ✅ PERMITE: Manhã 07-13h + Tarde 13-19h (consecutivos, sem sobreposição)
+                    // ❌ BLOQUEIA: Manhã 07-13h + Manhã Suporte 09-15h (sobreposição 09-13h)
+                    // ❌ BLOQUEIA: Manhã 07-13h + Manhã 07-13h (intervalos idênticos, buracos diferentes)
                     const hasConflict = temConflito(turnoInicio, turnoFim, outroInicio, outroFim);
+
+                    if (hasConflict) {
+                        console.log('❌ CONFLITO DETECTADO - Bloqueando');
+                    } else {
+                        console.log('✅ SEM CONFLITO - Permitindo');
+                    }
 
                     return hasConflict;
                 });
@@ -573,7 +601,7 @@
                 if (temConflitoDia) {
                     slot.classList.remove('disponivel', 'ocupado');
                     slot.classList.add('indisponivel');
-                    slot.title = 'Conflito de horário com outro turno';
+                    slot.title = 'Conflito de horário com outra alocação';
                     return;
                 }
 
