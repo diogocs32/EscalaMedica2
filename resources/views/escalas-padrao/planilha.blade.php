@@ -7,6 +7,8 @@
     <title>Planilha da Escala Padrão - {{ $unidade->nome }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
     <style>
         body {
             background: #f6f7fb;
@@ -200,9 +202,43 @@
                 <a href="{{ route('schedule-patterns') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left"></i> Voltar
                 </a>
-                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalAtribuicaoRapida">
-                    <i class="bi bi-lightning-charge"></i> Atribuição Rápida
-                </button>
+            </div>
+        </div>
+
+        <!-- Barra de Atribuição Rápida -->
+        <div class="card card-slab mb-4" id="atribuicaoRapidaBar">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <h6 class="mb-0">
+                            <i class="bi bi-lightning-charge text-success me-2"></i>
+                            Atribuição Rápida
+                        </h6>
+                    </div>
+                    <div class="col-md-5">
+                        <select id="selectPlantonista" class="form-select" style="width: 100%;">
+                            <option value="">Selecione um plantonista...</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-sm btn-outline-danger" id="btnLimparSelecao" style="display: none;">
+                            <i class="bi bi-x-circle"></i> Limpar Seleção
+                        </button>
+                    </div>
+                    <div class="col">
+                        <div class="small text-muted">
+                            <span class="badge bg-success-subtle text-success border me-1" style="font-size: .7rem;">
+                                <i class="bi bi-check-circle"></i> Disponível
+                            </span>
+                            <span class="badge bg-secondary-subtle text-secondary border me-1" style="font-size: .7rem;">
+                                <i class="bi bi-x-circle"></i> Conflito
+                            </span>
+                            <span class="badge bg-primary-subtle text-primary border" style="font-size: .7rem;">
+                                <i class="bi bi-person-check"></i> Alocado
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -356,14 +392,16 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         // Estado global
         let plantonistaSelecionado = null;
         let plantonistas = [];
         let alocacoes = {}; // {semana-dia-turno-setor-slot: plantonista_id}
 
-        // Carregar plantonistas ao abrir modal
-        document.getElementById('modalAtribuicaoRapida').addEventListener('show.bs.modal', function() {
+        // Carregar plantonistas e inicializar Select2
+        $(document).ready(function() {
             carregarPlantonistas();
         });
 
@@ -372,84 +410,77 @@
             try {
                 const response = await fetch('/api/plantonistas-ativos');
                 plantonistas = await response.json();
-                renderizarPlantonistas(plantonistas);
+
+                // Inicializar Select2
+                $('#selectPlantonista').select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Selecione ou pesquise um plantonista...',
+                    allowClear: true,
+                    data: plantonistas.map(p => ({
+                        id: p.id,
+                        text: `${p.nome} - CRM: ${p.crm || 'N/D'} - ${p.especialidade || 'N/D'}`,
+                        nome: p.nome,
+                        crm: p.crm,
+                        especialidade: p.especialidade
+                    })),
+                    matcher: matchCustom
+                }).on('select2:select', function(e) {
+                    selecionarPlantonista(e.params.data.id);
+                }).on('select2:unselect', function() {
+                    limparSelecao();
+                });
+
             } catch (error) {
                 console.error('Erro ao carregar plantonistas:', error);
-                document.getElementById('listaPlantonistas').innerHTML =
-                    '<div class="col-12 text-center text-danger py-3">Erro ao carregar plantonistas</div>';
+                alert('Erro ao carregar plantonistas. Verifique a conexão.');
             }
         }
 
-        // Renderizar lista de plantonistas
-        function renderizarPlantonistas(lista) {
-            const container = document.getElementById('listaPlantonistas');
-            if (lista.length === 0) {
-                container.innerHTML = '<div class="col-12 text-center text-muted py-3">Nenhum plantonista encontrado</div>';
-                return;
+        // Matcher customizado para busca por nome, CRM ou especialidade
+        function matchCustom(params, data) {
+            if ($.trim(params.term) === '') {
+                return data;
             }
 
-            container.innerHTML = lista.map(p => `
-                <div class="col-md-6">
-                    <div class="plantonista-card p-3 rounded border" onclick="selecionarPlantonista(${p.id})">
-                        <div class="d-flex align-items-start">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1">${p.nome}</h6>
-                                <div class="small text-muted">
-                                    <div><i class="bi bi-card-text me-1"></i>CRM: ${p.crm || 'N/D'}</div>
-                                    <div><i class="bi bi-heart-pulse me-1"></i>${p.especialidade || 'N/D'}</div>
-                                </div>
-                            </div>
-                            <i class="bi bi-check-circle text-success" style="font-size: 1.5rem; display: none;"></i>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            const term = params.term.toLowerCase();
+            const plantonista = plantonistas.find(p => p.id == data.id);
+
+            if (!plantonista) return null;
+
+            // Buscar em nome, CRM e especialidade
+            if (plantonista.nome.toLowerCase().indexOf(term) > -1 ||
+                (plantonista.crm && plantonista.crm.toLowerCase().indexOf(term) > -1) ||
+                (plantonista.especialidade && plantonista.especialidade.toLowerCase().indexOf(term) > -1)) {
+                return data;
+            }
+
+            return null;
         }
-
-        // Busca de plantonistas
-        document.getElementById('searchPlantonista').addEventListener('input', function(e) {
-            const termo = e.target.value.toLowerCase();
-            const filtrados = plantonistas.filter(p =>
-                p.nome.toLowerCase().includes(termo) ||
-                (p.crm && p.crm.toLowerCase().includes(termo)) ||
-                (p.especialidade && p.especialidade.toLowerCase().includes(termo))
-            );
-            renderizarPlantonistas(filtrados);
-
-            // Re-selecionar se estava selecionado
-            if (plantonistaSelecionado) {
-                const card = document.querySelector(`.plantonista-card[onclick*="${plantonistaSelecionado.id}"]`)?.parentElement;
-                if (card) {
-                    card.querySelector('.plantonista-card').classList.add('selected');
-                    card.querySelector('.bi-check-circle').style.display = 'block';
-                }
-            }
-        });
 
         // Selecionar plantonista
         function selecionarPlantonista(id) {
-            const plantonista = plantonistas.find(p => p.id === id);
+            const plantonista = plantonistas.find(p => p.id == id);
             if (!plantonista) return;
-
-            // Remover seleção anterior
-            document.querySelectorAll('.plantonista-card').forEach(card => {
-                card.classList.remove('selected');
-                card.querySelector('.bi-check-circle').style.display = 'none';
-            });
-
-            // Adicionar nova seleção
-            const card = event.target.closest('.plantonista-card');
-            card.classList.add('selected');
-            card.querySelector('.bi-check-circle').style.display = 'block';
 
             plantonistaSelecionado = plantonista;
 
+            // Mostrar botão de limpar
+            $('#btnLimparSelecao').show();
+
             // Atualizar visualização dos slots
             atualizarSlotsDisponiveis();
-
-            // Fechar modal
-            bootstrap.Modal.getInstance(document.getElementById('modalAtribuicaoRapida')).hide();
         }
+
+        // Limpar seleção
+        function limparSelecao() {
+            plantonistaSelecionado = null;
+            $('#selectPlantonista').val(null).trigger('change');
+            $('#btnLimparSelecao').hide();
+            atualizarSlotsDisponiveis();
+        }
+
+        // Botão limpar seleção
+        $('#btnLimparSelecao').on('click', limparSelecao);
 
         // Verificar conflito de horário entre turnos
         function temConflito(turno1Inicio, turno1Fim, turno2Inicio, turno2Fim) {
@@ -550,7 +581,7 @@
         document.addEventListener('click', function(e) {
             if (!e.target.classList.contains('badge-slot')) return;
             if (!plantonistaSelecionado) {
-                alert('Selecione um plantonista primeiro usando o botão "Atribuição Rápida"');
+                alert('Selecione um plantonista primeiro no dropdown acima');
                 return;
             }
 
