@@ -489,13 +489,19 @@
             const t2i = timeToMinutes(turno2Inicio);
             const t2f = timeToMinutes(turno2Fim);
 
+            // Se os horários são EXATAMENTE IGUAIS (mesmo turno, ex: Manhã 07-13 vs Manhã 07-13)
+            // NÃO há conflito - permite múltiplos slots no mesmo turno
+            if (t1i === t2i && t1f === t2f) {
+                return false;
+            }
+
             // Tratar turnos que passam da meia-noite (ex: 19:00-07:00)
             const t1f_ajustado = t1f < t1i ? t1f + 1440 : t1f;
             const t2f_ajustado = t2f < t2i ? t2f + 1440 : t2f;
 
             // Verificar sobreposição REAL (não apenas adjacência)
             // Turnos consecutivos (ex: 07:00-13:00 e 13:00-19:00) NÃO conflitam
-            // Só há conflito se um turno COMEÇA ANTES do outro TERMINAR
+            // Turnos sobrepostos (ex: 07:00-13:00 e 09:00-15:00) SIM conflitam
             return (t1i < t2f_ajustado && t1f_ajustado > t2i);
         }
 
@@ -537,37 +543,27 @@
                     return;
                 }
 
-                // Verificar se o plantonista já está alocado neste dia/turno/setor
-                const jaAlocadoMesmoSlot = Object.keys(alocacoes).some(k => {
-                    const [s, d, t, st] = k.split('-');
-                    return s === semana && d === dia && t === turno && st === setor && alocacoes[k] === plantonistaSelecionado.id;
-                });
-
-                if (jaAlocadoMesmoSlot) {
-                    slot.classList.remove('disponivel', 'ocupado');
-                    slot.classList.add('indisponivel');
-                    slot.title = 'Plantonista já alocado neste turno/setor';
-                    return;
-                }
-
-                // Verificar conflitos de horário no mesmo dia
+                // Verificar conflitos de horário no mesmo dia com OUTRAS alocações
                 const temConflitoDia = Object.keys(alocacoes).some(k => {
                     const [s, d, t, st, slotN] = k.split('-');
 
                     // Ignorar se não é mesmo dia, mesma semana ou mesmo plantonista
                     if (s !== semana || d !== dia || alocacoes[k] !== plantonistaSelecionado.id) return false;
 
-                    // Ignorar se é o próprio slot (comparando TODOS os atributos)
-                    if (t === turno && st === setor && slotN === slotNum) return false;
+                    // Ignorar se é o EXATO mesmo slot (mesma semana, dia, turno, setor E número)
+                    if (s === semana && d === dia && t === turno && st === setor && slotN === slotNum) return false;
 
-                    // Pegar horário do turno conflitante pelo slot exato
+                    // Pegar horário do turno da alocação existente
                     const outroSlot = document.querySelector(`[data-semana="${s}"][data-dia="${d}"][data-turno="${t}"][data-setor="${st}"][data-slot="${slotN}"]`);
                     if (!outroSlot) return false;
 
                     const outroInicio = outroSlot.dataset.turnoInicio;
                     const outroFim = outroSlot.dataset.turnoFim;
 
-                    // Só retorna true se REALMENTE houver sobreposição de horários
+                    // Verificar se há sobreposição REAL de horários
+                    // IMPORTANTE: Múltiplos buracos no MESMO turno (ex: Manhã Buraco1, Manhã Buraco2)
+                    // têm o MESMO horário, então temConflito retorna FALSE (não há sobreposição com si mesmo)
+                    // Mas turnos DIFERENTES com horários sobrepostos (Manhã 07-13 vs ManhãSup 09-15) retornam TRUE
                     const hasConflict = temConflito(turnoInicio, turnoFim, outroInicio, outroFim);
 
                     return hasConflict;
