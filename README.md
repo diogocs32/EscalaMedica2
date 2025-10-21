@@ -237,8 +237,13 @@ Este projeto está licenciado sob a [MIT License](LICENSE).
 - **Iniciado em**: 2025-10-20
 - **Laravel Version**: 11.46.1
 - **PHP Version**: 8.2.12
-- **Total de Commits**: 3
-- **Funcionalidades Ativas**: 1
+- **Total de Commits**: 4
+- **Funcionalidades Ativas**: 6
+- **Documentos Técnicos**: 9
+- **Termos no Glossário**: 15
+- **Regras de Negócio**: 25
+- **Fluxos Mapeados**: 8
+- **Cobertura de Testes Meta**: 80%+
 
 ---
 
