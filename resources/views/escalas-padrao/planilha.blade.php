@@ -408,7 +408,7 @@
         // Função para carregar plantonistas
         async function carregarPlantonistas() {
             try {
-                const response = await fetch('/api/plantonistas-ativos');
+                const response = await fetch('{{ url("/api/plantonistas-ativos") }}');
                 plantonistas = await response.json();
 
                 // Inicializar Select2
