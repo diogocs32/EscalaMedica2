@@ -5,20 +5,21 @@
 > **🎯 FUNÇÃO**: Servir como índice central para localizar entidades, rotas, componentes, regras e nomenclaturas em seus respectivos documentos especializados.
 
 ## 📊 ESTATÍSTICAS DO SISTEMA
-- **Última Atualização**: 2025-10-21 
+- **Última Atualização**: 2025-10-21 (Commit: 1bc44729)
 - **Status Geral**: ✅ **100% FUNCIONAL**
-- **Total de Funcionalidades**: 9 ✅
-- **Total de Entidades**: 7
-- **Total de Rotas**: 20 ✅
-- **Total de Controllers**: 4 ✅
-- **Total de Views**: 13 ✅
-- **Total de Componentes**: 24 ✅
-- **Total de Documentos**: 12 ✅
+- **Total de Funcionalidades**: 12 ✅ (incluindo Escala Padrão 5 Semanas)
+- **Total de Entidades**: 11 ✅ (7 originais + 4 novos models Escala Padrão)
+- **Total de Rotas**: 58 ✅ (+10 rotas de escala padrão com planilha)
+- **Total de Controllers**: 9 ✅ (+1 EscalaPadraoController)
+- **Total de Views**: 34 ✅ (+5 views de escala padrão: index, create, edit-dia, resumo, planilha)
+- **Total de Componentes**: 32 ✅
+- **Total de Documentos**: 16 ✅ (+2 SISTEMA_ESCALA_PADRAO.md, GUIA_USO_ESCALA_PADRAO.md)
 - **Total de Nomenclaturas Registradas**: 47 ✅
-- **Bugs Corrigidos Hoje**: 4 ✅
+- **Bugs Corrigidos Hoje**: 11 ✅
 - **Versão Laravel**: 11.46.1
 - **Versão PHP**: 8.2.12
 - **Dashboard Status**: ✅ **IMPLEMENTADO**
+- **Sistema Escala Padrão**: ✅ **IMPLEMENTADO** (Backend + Frontend + Planilha 5×7 Completo)
 
 ---
 
@@ -29,6 +30,7 @@
 | Necessidade | Documento | Descrição |
 |------------|-----------|----------|
 | **Arquitetura & Padrões** | `DOCUMENTACAO_TECNICA.md` | Estrutura técnica, tecnologias e padrões |
+| **Mapa de Relacionamentos** | `MAPA_RELACIONAMENTOS.md` | 🔗 **CRÍTICO**: Todos os relacionamentos entre entidades e pontos de impacto |
 | **Termos e Definições** | `GLOSSARIO_DE_DOMINIO.md` | Vocabulário médico e técnico padronizado |
 | **Regras de Negócio** | `REGRAS_DE_NEGOCIO.md` | Validações e constraints funcionais |
 | **Fluxos de Trabalho** | `FLUXOS_FUNCIONAIS.md` | Processos e workflows mapeados |
@@ -40,6 +42,8 @@
 | **Nomenclaturas** | `INDICE_NOMENCLATURAS.md` | ⚡ Registro de todas as classes, métodos e onde são usadas |
 | **Bugs Corrigidos** | `BUGS_CORRIGIDOS.md` | ⚡ Histórico de correções e melhorias |
 | **Histórico** | `HISTORICO_COMMITS.md` | Log de todas as alterações do sistema |
+| **Sistema Escala Padrão** | `SISTEMA_ESCALA_PADRAO.md` | 📅 Arquitetura técnica da escala padrão de 5 semanas |
+| **Guia de Uso Escala** | `GUIA_USO_ESCALA_PADRAO.md` | 📖 Tutorial completo de uso do sistema de escala padrão |
 
 ---
 
@@ -150,6 +154,47 @@
   - `resources/views/alocacoes/` (4 views CRUD)
   - Bootstrap 5.3.0 (CDN)
 
+### F009 - Sistema de Escala Padrão Rotativa (5 Semanas)
+- **Descrição**: Template cíclico de 5 semanas que se repete automaticamente, baseado em melhores práticas hospitalares
+- **Status**: ✅ Ativo (Implementação Backend + Frontend + Visualização Completa)
+- **Responsável**: Sistema + Direção Médica
+- **Data de Criação**: 2025-10-21
+- **Última Modificação**: 2025-10-21 (Commit: 1bc44729)
+- **Impacto**: Planejamento de longo prazo, distribuição justa de carga, previsibilidade para equipes
+- **Dependências**: Sistema de Escala Médica, Unidades, Turnos, Setores
+- **Arquivos Relacionados**:
+  - `database/migrations/2025_10_21_200000_create_escala_padrao_tables.php`
+  - `app/Models/EscalaPadrao.php`
+  - `app/Models/SemanaTemplate.php`
+  - `app/Models/DiaTemplate.php`
+  - `app/Models/ConfiguracaoTurnoSetor.php`
+  - `app/Http/Controllers/EscalaPadraoController.php`
+  - `resources/views/escalas-padrao/index.blade.php` (visualização 5 semanas × 7 dias)
+  - `resources/views/escalas-padrao/create.blade.php` (criação de escala)
+  - `resources/views/escalas-padrao/edit-dia.blade.php` (configuração por dia)
+  - `resources/views/escalas-padrao/resumo.blade.php` (cards resumo por unidade)
+  - `resources/views/escalas-padrao/planilha.blade.php` (planilha 5×7 detalhada)
+  - `resources/views/dashboard/index.blade.php` (link no menu lateral)
+  - `routes/web.php` (10 rotas dedicadas)
+  - `SISTEMA_ESCALA_PADRAO.md` (documentação técnica completa)
+  - `GUIA_USO_ESCALA_PADRAO.md` (tutorial de uso)
+- **Estrutura**:
+  - Cada Unidade tem UMA escala padrão
+  - Escala tem 5 semanas template que se repetem ciclicamente
+  - Cada semana tem 7 dias configuráveis
+  - Cada dia tem turnos + setores + quantidade de médicos
+  - Sistema calcula automaticamente qual semana está vigente
+- **Funcionalidades Implementadas**:
+  - ✅ CRUD completo de escala padrão
+  - ✅ Configuração granular por dia/turno/setor
+  - ✅ Sistema de cópia entre dias/semanas
+  - ✅ Cálculo automático de semana vigente
+  - ✅ Visualização em tabs (5 semanas)
+  - ✅ Resumo geral com métricas por unidade
+  - ✅ Planilha detalhada 5×7 com cabeçalhos agrupados
+  - ✅ Métricas: Total de Slots, Preenchidos, Buracos, Taxa
+  - ✅ Navegação completa: Dashboard → Resumo → Planilha → Configuração
+
 ---
 
 ## 🗃️ Entidades e Modelos
@@ -187,38 +232,41 @@
 - **Arquivo**: `app/Models/Unidade.php`
 
 ### E004 - Setor
-- **Descrição**: Setores dentro das unidades (UTI, Emergência, etc.)
+- **Descrição**: Setores médicos globais (UTI, Emergência, etc.) - NÃO vinculados a unidades específicas
 - **Tabela**: `setores`
 - **Modelo**: `App\Models\Setor`
 - **Status**: ✅ Ativo
 - **Relacionamentos**:
-  - `belongsTo(Unidade::class)` - unidade do setor
-  - `hasMany(Vaga::class)` - vagas do setor
-- **Campos Principais**: nome, descricao, unidade_id, status
+  - `hasMany(Vaga::class)` - vagas que utilizam este setor (através de Unidade + Turno)
+- **Campos Principais**: nome (unique), descricao, status
 - **Arquivo**: `app/Models/Setor.php`
+- **Observações**: Setores são GLOBAIS. A relação com unidades é feita através da tabela `vagas`
 
 ### E005 - Turno
-- **Descrição**: Turnos de trabalho (manhã, tarde, noite, etc.)
+- **Descrição**: Turnos de trabalho globais (manhã, tarde, noite, etc.) - NÃO vinculados a unidades específicas
 - **Tabela**: `turnos`
 - **Modelo**: `App\Models\Turno`
 - **Status**: ✅ Ativo
 - **Relacionamentos**:
-  - `hasMany(Vaga::class)` - vagas do turno
-- **Campos Principais**: nome, hora_inicio, hora_fim, duracao_horas, periodo, status
+  - `hasMany(Vaga::class)` - vagas que utilizam este turno (através de Unidade + Setor)
+- **Campos Principais**: nome (unique), hora_inicio, hora_fim, duracao_horas, periodo, status
 - **Arquivo**: `app/Models/Turno.php`
+- **Observações**: Turnos são GLOBAIS. A relação com unidades é feita através da tabela `vagas`
 
 ### E006 - Vaga
-- **Descrição**: Vagas de plantão disponíveis
+- **Descrição**: Configuração de vagas: define quais SETORES (globais) operam em quais TURNOS (globais) em cada UNIDADE, e quantos médicos são necessários
 - **Tabela**: `vagas`
 - **Modelo**: `App\Models\Vaga`
 - **Status**: ✅ Ativo
 - **Relacionamentos**:
   - `belongsTo(Unidade::class)` - unidade da vaga
-  - `belongsTo(Setor::class)` - setor da vaga
-  - `belongsTo(Turno::class)` - turno da vaga
+  - `belongsTo(Setor::class)` - setor (global) operando nesta vaga
+  - `belongsTo(Turno::class)` - turno (global) desta vaga
   - `hasMany(Alocacao::class)` - alocações da vaga
-- **Campos Principais**: unidade_id, setor_id, turno_id, descricao, observacoes, status
+- **Campos Principais**: unidade_id, setor_id, turno_id, quantidade_necessaria, observacoes, status
 - **Arquivo**: `app/Models/Vaga.php`
+- **Unique Key**: (unidade_id, setor_id, turno_id) - previne duplicatas
+- **Observações**: Esta é a tabela CENTRAL que conecta Unidades com Setores e Turnos globais
 
 ### E007 - Alocacao
 - **Descrição**: Alocações de plantonistas em vagas específicas
@@ -232,6 +280,54 @@
 - **Campos Principais**: plantonista_id, vaga_id, data_plantao, data_hora_inicio, data_hora_fim, observacoes, status
 - **Arquivo**: `app/Models/Alocacao.php`
 - **Observer**: `AlocacaoObserver` para cálculo automático de datas/horas
+
+### E008 - EscalaPadrao
+- **Descrição**: Template mestre de escala rotativa de 5 semanas por unidade
+- **Tabela**: `escalas_padrao`
+- **Modelo**: `App\Models\EscalaPadrao`
+- **Status**: ✅ Ativo
+- **Relacionamentos**:
+  - `belongsTo(Unidade::class)` - unidade dona da escala
+  - `hasMany(SemanaTemplate::class)` - 5 semanas template
+- **Campos Principais**: unidade_id, nome, descricao, status, vigencia_inicio
+- **Arquivo**: `app/Models/EscalaPadrao.php`
+- **Unique Key**: (unidade_id) - cada unidade tem apenas UMA escala padrão ativa
+- **Método Especial**: `getSemanaAtual()` - calcula qual semana (1-5) está vigente hoje
+
+### E009 - SemanaTemplate
+- **Descrição**: Uma das 5 semanas do ciclo rotativo
+- **Tabela**: `semanas_template`
+- **Modelo**: `App\Models\SemanaTemplate`
+- **Status**: ✅ Ativo
+- **Relacionamentos**:
+  - `belongsTo(EscalaPadrao::class)` - escala pai
+  - `hasMany(DiaTemplate::class)` - 7 dias da semana
+- **Campos Principais**: escala_padrao_id, numero_semana (1-5), nome, observacoes
+- **Arquivo**: `app/Models/SemanaTemplate.php`
+
+### E010 - DiaTemplate
+- **Descrição**: Um dia da semana dentro de uma semana template
+- **Tabela**: `dias_template`
+- **Modelo**: `App\Models\DiaTemplate`
+- **Status**: ✅ Ativo
+- **Relacionamentos**:
+  - `belongsTo(SemanaTemplate::class)` - semana pai
+  - `hasMany(ConfiguracaoTurnoSetor::class)` - configurações de turnos/setores
+- **Campos Principais**: semana_template_id, dia_semana (segunda-domingo), observacoes
+- **Arquivo**: `app/Models/DiaTemplate.php`
+
+### E011 - ConfiguracaoTurnoSetor
+- **Descrição**: Configuração final: Turno + Setor + Quantidade de médicos necessários
+- **Tabela**: `configuracoes_turno_setor`
+- **Modelo**: `App\Models\ConfiguracaoTurnoSetor`
+- **Status**: ✅ Ativo
+- **Relacionamentos**:
+  - `belongsTo(DiaTemplate::class)` - dia pai
+  - `belongsTo(Turno::class)` - turno configurado
+  - `belongsTo(Setor::class)` - setor configurado
+- **Campos Principais**: dia_template_id, turno_id, setor_id, quantidade_necessaria, observacoes, status
+- **Arquivo**: `app/Models/ConfiguracaoTurnoSetor.php`
+- **Unique Key**: (dia_template_id, turno_id, setor_id) - previne duplicatas
 
 ### Convenções de Nomenclatura:
 - **Modelos**: PascalCase singular (ex: `Plantonista`, `Alocacao`)
@@ -249,15 +345,69 @@
 - **Middleware**: `web`
 - **Descrição**: Página de boas-vindas do Laravel
 - **Status**: ✅ Ativo
-- **Arquivo**: `routes/web.php:6`
+- **Arquivo**: `routes/web.php:9`
 - **Retorno**: View `welcome`
 
-### R002-R007 - Rotas de Setores
+### R002 - Dashboard
+- **Rota**: `GET /dashboard`
+- **Nome**: `dashboard`
+- **Controller**: `DashboardController@index`
+- **Middleware**: `web`
+- **Descrição**: Dashboard principal com estatísticas
+- **Status**: ✅ Ativo
+- **Arquivo**: `routes/web.php:14`
+
+### R003-R009 - Rotas de Plantonistas
+- **Rotas**: Resource `plantonistas`
+- **Controller**: `PlantonisταController`
+- **Middleware**: `web`
+- **Status**: ✅ Ativo
+- **Arquivo**: `routes/web.php:17`
+- **Rotas Incluídas**:
+  - `GET /plantonistas` - `plantonistas.index`
+  - `GET /plantonistas/create` - `plantonistas.create`
+  - `POST /plantonistas` - `plantonistas.store`
+  - `GET /plantonistas/{plantonista}` - `plantonistas.show`
+  - `GET /plantonistas/{plantonista}/edit` - `plantonistas.edit`
+  - `PUT/PATCH /plantonistas/{plantonista}` - `plantonistas.update`
+  - `DELETE /plantonistas/{plantonista}` - `plantonistas.destroy`
+
+### R010-R016 - Rotas de Cidades
+- **Rotas**: Resource `cidades`
+- **Controller**: `CidadeController`
+- **Middleware**: `web`
+- **Status**: ✅ Ativo
+- **Arquivo**: `routes/web.php:20`
+- **Rotas Incluídas**:
+  - `GET /cidades` - `cidades.index`
+  - `GET /cidades/create` - `cidades.create`
+  - `POST /cidades` - `cidades.store`
+  - `GET /cidades/{cidade}` - `cidades.show`
+  - `GET /cidades/{cidade}/edit` - `cidades.edit`
+  - `PUT/PATCH /cidades/{cidade}` - `cidades.update`
+  - `DELETE /cidades/{cidade}` - `cidades.destroy`
+
+### R017-R023 - Rotas de Unidades
+- **Rotas**: Resource `unidades`
+- **Controller**: `UnidadeController`
+- **Middleware**: `web`
+- **Status**: ✅ Ativo
+- **Arquivo**: `routes/web.php:23`
+- **Rotas Incluídas**:
+  - `GET /unidades` - `unidades.index`
+  - `GET /unidades/create` - `unidades.create`
+  - `POST /unidades` - `unidades.store`
+  - `GET /unidades/{unidade}` - `unidades.show`
+  - `GET /unidades/{unidade}/edit` - `unidades.edit`
+  - `PUT/PATCH /unidades/{unidade}` - `unidades.update`
+  - `DELETE /unidades/{unidade}` - `unidades.destroy`
+
+### R024-R030 - Rotas de Setores
 - **Rotas**: Resource `setores`
 - **Controller**: `SetorController`
 - **Middleware**: `web`
 - **Status**: ✅ Ativo
-- **Arquivo**: `routes/web.php:11`
+- **Arquivo**: `routes/web.php:26`
 - **Rotas Incluídas**:
   - `GET /setores` - `setores.index`
   - `GET /setores/create` - `setores.create`
@@ -267,12 +417,12 @@
   - `PUT/PATCH /setores/{setor}` - `setores.update`
   - `DELETE /setores/{setor}` - `setores.destroy`
 
-### R008-R013 - Rotas de Turnos
+### R031-R037 - Rotas de Turnos
 - **Rotas**: Resource `turnos`
 - **Controller**: `TurnoController`
 - **Middleware**: `web`
 - **Status**: ✅ Ativo
-- **Arquivo**: `routes/web.php:14`
+- **Arquivo**: `routes/web.php:29`
 - **Rotas Incluídas**:
   - `GET /turnos` - `turnos.index`
   - `GET /turnos/create` - `turnos.create`
@@ -282,12 +432,12 @@
   - `PUT/PATCH /turnos/{turno}` - `turnos.update`
   - `DELETE /turnos/{turno}` - `turnos.destroy`
 
-### R014-R019 - Rotas de Alocações
+### R038-R044 - Rotas de Alocações
 - **Rotas**: Resource `alocacoes`
 - **Controller**: `AlocacaoController`
 - **Middleware**: `web`
 - **Status**: ✅ Ativo
-- **Arquivo**: `routes/web.php:17`
+- **Arquivo**: `routes/web.php:32`
 - **Rotas Incluídas**:
   - `GET /alocacoes` - `alocacoes.index`
   - `GET /alocacoes/create` - `alocacoes.create`
@@ -296,6 +446,23 @@
   - `GET /alocacoes/{alocacao}/edit` - `alocacoes.edit`
   - `PUT/PATCH /alocacoes/{alocacao}` - `alocacoes.update`
   - `DELETE /alocacoes/{alocacao}` - `alocacoes.destroy`
+
+### R045-R054 - Rotas de Escala Padrão
+- **Controller**: `EscalaPadraoController`
+- **Middleware**: `web`
+- **Status**: ✅ Ativo
+- **Arquivo**: `routes/web.php`
+- **Rotas Incluídas**:
+  - `GET /schedule-patterns` - `schedule-patterns` (resumoGeral) - Cards resumo todas unidades
+  - `GET /schedule-patterns/{unidade}/schedule` - `schedule-patterns.schedule` (planilha) - Planilha 5×7 detalhada
+  - `GET /unidades/{unidade}/escala-padrao` - `escalas-padrao.index` - Visualização 5 semanas em tabs
+  - `GET /unidades/{unidade}/escala-padrao/create` - `escalas-padrao.create` - Formulário criação
+  - `POST /unidades/{unidade}/escala-padrao` - `escalas-padrao.store` - Criação com estrutura 5×7
+  - `GET /unidades/{unidade}/escala-padrao/{semana}/{dia}/edit` - `escalas-padrao.edit-dia` - Configuração por dia
+  - `POST /unidades/{unidade}/escala-padrao/{semana}/{dia}` - `escalas-padrao.store-configuracao` - Adicionar config
+  - `DELETE /unidades/{unidade}/escala-padrao/config/{config}` - `escalas-padrao.destroy-configuracao` - Remover config
+  - `POST /unidades/{unidade}/escala-padrao/{semana}/{dia}/copiar` - `escalas-padrao.copiar-dia` - Copiar entre dias
+  - `GET /dashboard` - Link "Padrões de Escala" no menu lateral
 
 ### Convenções de Nomenclatura de Rotas:
 - **Recurso simples**: `resource.action` (ex: `setor.show`)
@@ -306,7 +473,46 @@
 
 ## 🧩 Componentes
 
-### C001 - SetorController
+### C001 - DashboardController
+- **Descrição**: Controller para dashboard principal com estatísticas
+- **Tipo**: Single Action Controller
+- **Status**: ✅ Ativo
+- **Arquivo**: `app/Http/Controllers/DashboardController.php`
+- **Métodos**: index
+- **Funcionalidades**: Estatísticas gerais do sistema
+- **Transações**: Não
+
+### C002 - PlantonisταController
+- **Descrição**: Controller para gestão completa de plantonistas
+- **Tipo**: Resource Controller
+- **Status**: ✅ Ativo
+- **Arquivo**: `app/Http/Controllers/PlantonisταController.php`
+- **Métodos**: index, create, store, show, edit, update, destroy
+- **Validações**: CRM único, email único, campos obrigatórios
+- **Transações**: Sim (store/update/destroy)
+- **Proteções**: Impede exclusão se existem alocações
+
+### C003 - CidadeController
+- **Descrição**: Controller para gestão completa de cidades
+- **Tipo**: Resource Controller
+- **Status**: ✅ Ativo
+- **Arquivo**: `app/Http/Controllers/CidadeController.php`
+- **Métodos**: index, create, store, show, edit, update, destroy
+- **Validações**: nome único
+- **Transações**: Sim (store/update/destroy)
+- **Proteções**: Impede exclusão se existem unidades
+
+### C004 - UnidadeController
+- **Descrição**: Controller para gestão completa de unidades
+- **Tipo**: Resource Controller
+- **Status**: ✅ Ativo
+- **Arquivo**: `app/Http/Controllers/UnidadeController.php`
+- **Métodos**: index, create, store, show, edit, update, destroy
+- **Validações**: cidade existente, campos obrigatórios
+- **Transações**: Sim (store/update/destroy)
+- **Proteções**: Impede exclusão se existem vagas
+
+### C005 - SetorController
 - **Descrição**: Controller para gestão completa de setores
 - **Tipo**: Resource Controller
 - **Status**: ✅ Ativo
@@ -314,8 +520,9 @@
 - **Métodos**: index, create, store, show, edit, update, destroy
 - **Validações**: nome único, unidade existente
 - **Transações**: Sim (store/update/destroy)
+- **Proteções**: Impede exclusão se existem vagas
 
-### C002 - TurnoController
+### C006 - TurnoController
 - **Descrição**: Controller para gestão completa de turnos
 - **Tipo**: Resource Controller
 - **Status**: ✅ Ativo
@@ -324,7 +531,7 @@
 - **Validações**: nome único, formato hora válido, cálculo duração
 - **Transações**: Sim (store/update/destroy)
 
-### C003 - AlocacaoController
+### C007 - AlocacaoController
 - **Descrição**: Controller para gestão completa de alocações
 - **Tipo**: Resource Controller
 - **Status**: ✅ Ativo
@@ -333,7 +540,7 @@
 - **Validações**: SemSobreposicaoDeHorario, entidades válidas
 - **Transações**: Sim (store/update/destroy)
 
-### C004 - AlocacaoObserver
+### C008 - AlocacaoObserver
 - **Descrição**: Observer para cálculo automático de datas/horas das alocações
 - **Tipo**: Model Observer
 - **Status**: ✅ Ativo
@@ -341,35 +548,35 @@
 - **Eventos**: creating, updating
 - **Funcionalidades**: Cálculo automático data_hora_inicio/fim, suporte turnos "Corujão"
 
-### C005 - SemSobreposicaoDeHorario
+### C009 - SemSobreposicaoDeHorario
 - **Descrição**: Regra de validação para prevenir conflitos de horários
 - **Tipo**: Custom Validation Rule
 - **Status**: ✅ Ativo
 - **Arquivo**: `app/Rules/SemSobreposicaoDeHorario.php`
 - **Funcionalidades**: Detecção sobreposição horários, validação cruzada plantonistas
 
-### C006 - DatabaseSeeder
+### C010 - DatabaseSeeder
 - **Descrição**: Seeder principal que executa todos os seeders do sistema
 - **Tipo**: Database Seeder
 - **Status**: ✅ Ativo
 - **Arquivo**: `database/seeders/DatabaseSeeder.php`
 - **Dependências**: Todos os seeders específicos
 
-### C007 - PlantonistasSeeder + CidadesSeeder + UnidadesSeeder
+### C011 - PlantonistasSeeder + CidadesSeeder + UnidadesSeeder
 - **Descrição**: Seeders para dados base do sistema
 - **Tipo**: Model Seeders
 - **Status**: ✅ Ativo
 - **Arquivos**: `database/seeders/[Entity]Seeder.php`
 - **Registros**: 50+ plantonistas, 10+ cidades, 15+ unidades
 
-### C008 - SetoresSeeder + TurnosSeeder + VagasSeeder
+### C012 - SetoresSeeder + TurnosSeeder + VagasSeeder
 - **Descrição**: Seeders para estrutura operacional
 - **Tipo**: Model Seeders
 - **Status**: ✅ Ativo
 - **Arquivos**: `database/seeders/[Entity]Seeder.php`
 - **Registros**: 30+ setores, 6 turnos padrão, 100+ vagas
 
-### C009 - Views do Sistema de Setores
+### C013 - Views do Sistema de Setores
 - **Descrição**: Interface completa CRUD para gestão de setores
 - **Tipo**: Blade Templates
 - **Status**: ✅ Ativo
@@ -377,7 +584,7 @@
 - **Funcionalidades**: Listagem, criação, visualização, edição com validação
 - **Design**: Bootstrap 5.3.0 responsivo
 
-### C010 - Views do Sistema de Turnos
+### C014 - Views do Sistema de Turnos
 - **Descrição**: Interface completa CRUD para gestão de turnos
 - **Tipo**: Blade Templates
 - **Status**: ✅ Ativo
@@ -385,7 +592,7 @@
 - **Funcionalidades**: Gestão de horários, períodos, cálculo de duração
 - **Design**: Bootstrap 5.3.0 responsivo
 
-### C011 - Views do Sistema de Alocações
+### C015 - Views do Sistema de Alocações
 - **Descrição**: Interface completa CRUD para gestão de alocações
 - **Tipo**: Blade Templates
 - **Status**: ✅ Ativo
@@ -393,13 +600,84 @@
 - **Funcionalidades**: Gestão de plantões, prevenção conflitos, relacionamentos
 - **Design**: Bootstrap 5.3.0 responsivo
 
-### C012 - Sistema de Layout Responsivo
+### C016 - Sistema de Layout Responsivo
 - **Descrição**: Design system baseado em Bootstrap 5.3.0
 - **Tipo**: Frontend Framework
 - **Status**: ✅ Ativo
 - **Funcionalidades**: Responsividade, alertas, formulários, navegação
 - **Componentes**: Cards, tables, buttons, badges, modals
 - **Acessibilidade**: Mobile-first, screen readers compatível
+
+### C017 - Views do Sistema de Plantonistas
+- **Descrição**: Interface completa CRUD para gestão de plantonistas
+- **Tipo**: Blade Templates
+- **Status**: ✅ Ativo
+- **Arquivos**: `resources/views/plantonistas/` (index, create, show, edit)
+- **Funcionalidades**: Cadastro completo, validação CRM/email, listagem de alocações
+- **Design**: Bootstrap 5.3.0 responsivo
+
+### C018 - Views do Sistema de Cidades
+- **Descrição**: Interface completa CRUD para gestão de cidades
+- **Tipo**: Blade Templates
+- **Status**: ✅ Ativo
+- **Arquivos**: `resources/views/cidades/` (index, create, show, edit)
+- **Funcionalidades**: Cadastro simples, listagem de unidades por cidade
+- **Design**: Bootstrap 5.3.0 responsivo
+
+### C019 - Views do Sistema de Unidades
+- **Descrição**: Interface completa CRUD para gestão de unidades
+- **Tipo**: Blade Templates
+- **Status**: ✅ Ativo
+- **Arquivos**: `resources/views/unidades/` (index, create, show, edit)
+- **Funcionalidades**: Cadastro com cidade, endereço, listagem de vagas
+- **Design**: Bootstrap 5.3.0 responsivo
+
+### C020 - EscalaPadraoController
+- **Descrição**: Controller para gestão completa do sistema de escala padrão 5 semanas
+- **Tipo**: Resource Controller + Custom Actions
+- **Status**: ✅ Ativo
+- **Arquivo**: `app/Http/Controllers/EscalaPadraoController.php`
+- **Métodos**: 
+  - `resumoGeral()` - Cards resumo de todas as unidades com métricas
+  - `planilha($unidade)` - Planilha 5×7 detalhada por unidade
+  - `index($unidade)` - Visualização principal com 5 semanas em tabs
+  - `create($unidade)` - Formulário criação de escala
+  - `store($unidade)` - Criação com estrutura 5×7 automática
+  - `editDia($unidade, $semana, $dia)` - Configuração por dia
+  - `storeConfiguracao()` - Adicionar config Turno+Setor+Qty
+  - `destroyConfiguracao()` - Remover configuração
+  - `copiarDia()` - Copiar configs entre dias/semanas
+- **Validações**: 
+  - Uma escala ativa por unidade
+  - Quantidade médicos entre 1-50
+  - Combinação Turno+Setor única por dia
+- **Transações**: Sim (store/destroy)
+- **Métricas Calculadas**:
+  - Total de Slots = Σ(ConfiguracaoTurnoSetor.quantidade_necessaria)
+  - Preenchidos = 0 (futuro: alocações)
+  - Buracos = Total - Preenchidos
+  - Taxa = (Preenchidos / Total) × 100%
+
+### C021 - Views do Sistema de Escala Padrão
+- **Descrição**: Interface completa para gestão de escala padrão 5 semanas
+- **Tipo**: Blade Templates
+- **Status**: ✅ Ativo
+- **Arquivos**: 
+  - `resources/views/escalas-padrao/resumo.blade.php` - Cards resumo todas unidades
+  - `resources/views/escalas-padrao/planilha.blade.php` - Planilha 5×7 detalhada
+  - `resources/views/escalas-padrao/index.blade.php` - Visualização 5 semanas em tabs
+  - `resources/views/escalas-padrao/create.blade.php` - Criação de escala
+  - `resources/views/escalas-padrao/edit-dia.blade.php` - Configuração granular por dia
+- **Funcionalidades**: 
+  - Navegação completa entre views
+  - Sistema de tabs para semanas
+  - Cards responsivos com métricas
+  - Planilha com cabeçalhos agrupados (Turno > Setor)
+  - Formulários com validação inline
+  - Modal de cópia entre dias/semanas
+  - Botão "Atribuição Rápida" (placeholder)
+- **Design**: Bootstrap 5.3.0 + Bootstrap Icons responsivo
+- **Métricas Visuais**: Badges coloridos, progress bars, alertas contextuais
 
 ### Convenções de Nomenclatura:
 - **Controllers**: PascalCase + Controller (ex: `SetorController`)
