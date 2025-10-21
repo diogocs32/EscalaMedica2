@@ -1,66 +1,249 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏥 EscalaMedica2 - Sistema de Gestão Médica
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> **Sistema de gestão médica desenvolvido em Laravel 11 com foco em escalas, agendamentos e gestão hospitalar.**
 
-## About Laravel
+[![Laravel](https://img.shields.io/badge/Laravel-11.46.1-red.svg)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.2.12-blue.svg)](https://php.net)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 📋 Navegação da Documentação
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🚨 **LEITURA OBRIGATÓRIA ANTES DE QUALQUER IMPLEMENTAÇÃO**
 
-## Learning Laravel
+1. **[📋 REGISTRY.md](REGISTRY.md)** - **CONSULTE SEMPRE PRIMEIRO!**
+   - Registro central de todas as funcionalidades, entidades, rotas e componentes
+   - Fonte única de verdade para nomenclaturas e dependências
+   - **⚠️ OBRIGATÓRIO consultar antes de implementar qualquer funcionalidade**
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+2. **[📅 HISTORICO_COMMITS.md](HISTORICO_COMMITS.md)**
+   - Histórico detalhado de todas as alterações do sistema
+   - Contexto e motivação das decisões tomadas
+   - Rastreabilidade completa das implementações
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+3. **[🏗️ docs/DOCUMENTACAO_TECNICA.md](docs/DOCUMENTACAO_TECNICA.md)**
+   - Arquitetura completa do sistema
+   - Padrões de desenvolvimento e estrutura de pastas
+   - Relacionamentos entre módulos e componentes
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+4. **[� docs/GLOSSARIO_DE_DOMINIO.md](docs/GLOSSARIO_DE_DOMINIO.md)**
+   - Padronização de termos médicos e técnicos
+   - Definições funcionais e técnicas com exemplos
+   - Elimina ambiguidades na comunicação
 
-## Laravel Sponsors
+5. **[�📋 docs/REGRAS_DE_NEGOCIO.md](docs/REGRAS_DE_NEGOCIO.md)**
+   - Todas as regras de negócio implementadas ou planejadas
+   - Justificativas e contexto das decisões
+   - Validações, cálculos e restrições do sistema
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+6. **[🔄 docs/FLUXOS_FUNCIONAIS.md](docs/FLUXOS_FUNCIONAIS.md)**
+   - Fluxos principais do sistema com diagramas
+   - Sequência de ações e decisões
+   - Facilita testes e auditoria de processos
 
-### Premium Partners
+7. **[🧪 docs/ESTRATEGIA_DE_TESTES.md](docs/ESTRATEGIA_DE_TESTES.md)**
+   - Estratégia completa de testes automatizados
+   - Padrões, ferramentas e cobertura mínima
+   - Cenários críticos para sistema médico
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+8. **[📋 docs/PLANO_DE_ACAO.md](docs/PLANO_DE_ACAO.md)**
+   - Templates e exemplos práticos de implementação
+   - Snippets reutilizáveis e boas práticas
+   - Workflow de desenvolvimento obrigatório
 
-## Contributing
+9. **[⚡ docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)**
+   - Comandos essenciais para o dia a dia
+   - Referências rápidas e troubleshooting
+   - Guia de emergência
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 🚀 Quick Start
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 📋 Pré-requisitos
+- PHP 8.2+
+- Composer
+- XAMPP (Windows) ou servidor web equivalente
+- Node.js (para assets)
 
-## Security Vulnerabilities
+### ⚡ Instalação Rápida
+```bash
+# 1. Clone o repositório
+git clone [url-do-repositorio] EscalaMedica2
+cd EscalaMedica2
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# 2. Instale dependências
+composer install
 
-## License
+# 3. Configure ambiente
+cp .env.example .env
+php artisan key:generate
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# 4. Configure banco de dados
+touch database/database.sqlite
+
+# 5. Execute migrations
+php artisan migrate
+
+# 6. Inicie o servidor
+php artisan serve
+```
+
+### 🌐 Acesso
+- **Aplicação**: http://localhost:8000
+- **Documentação**: Consulte os arquivos .md listados acima
+
+---
+
+## 📊 Status do Projeto
+
+### ✅ Funcionalidades Implementadas
+- [x] Setup inicial do Laravel 11
+- [x] Configuração de ambiente de desenvolvimento
+- [x] Estrutura de documentação técnica completa
+- [x] Glossário de domínio médico (15 termos)
+- [x] Regras de negócio documentadas (25 regras)
+- [x] Fluxos funcionais mapeados (8 fluxos principais)
+- [x] Estratégia de testes definida (80%+ cobertura)
+- [x] Padrões de desenvolvimento estabelecidos
+
+### 🚧 Em Desenvolvimento
+- [ ] Sistema de autenticação
+- [ ] Gestão de usuários
+- [ ] Módulo de escalas médicas
+- [ ] Dashboard principal
+
+### 📋 Roadmap
+- [ ] Sistema de agendamentos
+- [ ] Relatórios gerenciais
+- [ ] API REST
+- [ ] Notificações
+- [ ] Mobile app
+
+---
+
+## 🏗️ Arquitetura do Sistema
+
+```
+EscalaMedica2/
+├── 📋 REGISTRY.md              # ⚠️ SEMPRE CONSULTE PRIMEIRO
+├── 📅 HISTORICO_COMMITS.md     # Histórico de alterações
+├── 📁 docs/                    # Documentação técnica completa
+│   ├── DOCUMENTACAO_TECNICA.md  # Arquitetura e padrões
+│   ├── GLOSSARIO_DE_DOMINIO.md  # Termos padronizados
+│   ├── REGRAS_DE_NEGOCIO.md     # Regras funcionais
+│   ├── FLUXOS_FUNCIONAIS.md     # Processos mapeados
+│   ├── ESTRATEGIA_DE_TESTES.md  # Framework de qualidade
+│   ├── PLANO_DE_ACAO.md         # Guia de implementação
+│   └── QUICK_REFERENCE.md       # Comandos essenciais
+├── 📁 app/                     # Código da aplicação
+├── 📁 database/                # Migrations, seeds, factories
+├── 📁 resources/               # Views, assets
+├── 📁 routes/                  # Definição de rotas
+└── 📁 tests/                   # Testes automatizados
+```
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+### Backend
+- **Laravel 11.46.1** - Framework PHP
+- **PHP 8.2.12** - Linguagem de programação
+- **SQLite** (desenvolvimento) / **MySQL** (produção)
+- **Eloquent ORM** - Mapeamento objeto-relacional
+
+### Frontend
+- **Blade Templates** - Engine de templates
+- **Vite** - Build tool para assets
+- **Bootstrap** (planejado) - Framework CSS
+
+### Ferramentas de Desenvolvimento
+- **Composer** - Gerenciador de dependências PHP
+- **PHPUnit** - Framework de testes
+- **Laravel Pint** - Code style fixer
+- **XAMPP** - Ambiente de desenvolvimento local
+
+---
+
+## 🤝 Contribuição
+
+### 📋 Workflow Obrigatório
+
+1. **ANTES de implementar qualquer funcionalidade**:
+   - ✅ Leia o [REGISTRY.md](REGISTRY.md)
+   - ✅ Consulte o [HISTORICO_COMMITS.md](HISTORICO_COMMITS.md)
+   - ✅ Revise o [PLANO_DE_ACAO.md](docs/PLANO_DE_ACAO.md)
+
+2. **Durante a implementação**:
+   - ✅ Siga os padrões definidos na documentação
+   - ✅ Use as convenções de nomenclatura estabelecidas
+   - ✅ Crie testes para novas funcionalidades
+
+3. **APÓS a implementação**:
+   - ✅ Atualize o [REGISTRY.md](REGISTRY.md) com as novas funcionalidades
+   - ✅ Documente no [HISTORICO_COMMITS.md](HISTORICO_COMMITS.md)
+   - ✅ Commit com mensagem descritiva
+
+### 🔧 Comandos Essenciais
+```bash
+# Verificar qualidade do código
+php artisan test
+./vendor/bin/pint
+
+# Gerar documentação de API (futuro)
+php artisan l5-swagger:generate
+
+# Verificar status do sistema
+php artisan about
+```
+
+---
+
+## 🛡️ Segurança
+
+- **Autenticação**: Laravel Breeze (planejado)
+- **Autorização**: Gates e Policies
+- **Validação**: Form Requests
+- **Proteção CSRF**: Habilitada
+- **Sanitização**: Blade templates automático
+
+Para reportar vulnerabilidades de segurança, entre em contato com [definir contato].
+
+---
+
+## 📞 Suporte
+
+### 📚 Documentação
+- **Técnica**: [docs/DOCUMENTACAO_TECNICA.md](docs/DOCUMENTACAO_TECNICA.md)
+- **Comandos**: [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)
+- **Laravel**: https://laravel.com/docs/11.x
+
+### 🆘 Emergência
+- **Troubleshooting**: [docs/QUICK_REFERENCE.md#troubleshooting](docs/QUICK_REFERENCE.md#troubleshooting)
+- **Contatos**: [Definir contatos de emergência]
+
+---
+
+## 📄 Licença
+
+Este projeto está licenciado sob a [MIT License](LICENSE).
+
+---
+
+## 📈 Estatísticas
+
+- **Iniciado em**: 2025-10-20
+- **Laravel Version**: 11.46.1
+- **PHP Version**: 8.2.12
+- **Total de Commits**: 3
+- **Funcionalidades Ativas**: 1
+
+---
+
+**📍 Última atualização**: 2025-10-20  
+**👥 Mantenedores**: [Definir equipe]  
+**📋 Status**: Em desenvolvimento ativo
+
+> **⚠️ IMPORTANTE**: Sempre consulte o [REGISTRY.md](REGISTRY.md) antes de implementar qualquer funcionalidade!
