@@ -519,4 +519,292 @@ class EscalaPadraoController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * API: Clonar configurações (Turno+Setor+Quantidade) de um dia de referência
+     * para múltiplos dias destino (possivelmente em semanas diferentes).
+     *
+     * Payload esperado (JSON):
+     * {
+     *   "referencia": { "semana": 1-5, "dia": "segunda|terca|...|domingo" },
+     *   "destinos": [ { "semana": 1-5, "dia": "segunda|...|domingo" }, ... ],
+     *   "sobrescrever": true|false (opcional, default=false)
+     * }
+     */
+    public function clonarDiaLote(Request $request, Unidade $unidade)
+    {
+        try {
+            $validated = $request->validate([
+                'referencia' => 'required|array',
+                'referencia.semana' => 'required|integer|min:1|max:5',
+                'referencia.dia' => 'required|in:segunda,terca,quarta,quinta,sexta,sabado,domingo',
+                'destinos' => 'required|array|min:1',
+                'destinos.*.semana' => 'required|integer|min:1|max:5',
+                'destinos.*.dia' => 'required|in:segunda,terca,quarta,quinta,sexta,sabado,domingo',
+                'sobrescrever' => 'nullable|boolean',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro de validação',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        $escala = $unidade->escalaPadrao()->where('status', 'ativo')->first();
+
+        if (!$escala) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nenhuma escala padrão ativa encontrada para esta unidade',
+            ], 404);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Origem
+            $semanaOrigem = $escala->semanas()->where('numero_semana', $validated['referencia']['semana'])->firstOrFail();
+            $diaOrigem = $semanaOrigem->dias()->where('dia_semana', $validated['referencia']['dia'])->firstOrFail();
+            $configsOrigem = $diaOrigem->configuracoes;
+
+            if ($configsOrigem->isEmpty()) {
+                DB::rollBack();
+
+                // Mapear nomes dos dias para exibir mensagem amigável
+                $diasNomes = [
+                    'segunda' => 'Segunda-feira',
+                    'terca' => 'Terça-feira',
+                    'quarta' => 'Quarta-feira',
+                    'quinta' => 'Quinta-feira',
+                    'sexta' => 'Sexta-feira',
+                    'sabado' => 'Sábado',
+                    'domingo' => 'Domingo'
+                ];
+                $diaLabel = $diasNomes[$validated['referencia']['dia']] ?? $validated['referencia']['dia'];
+
+                return response()->json([
+                    'success' => false,
+                    'message' => "O dia de referência (Semana {$validated['referencia']['semana']} - {$diaLabel}) não possui configurações de Turno+Setor para clonar. Configure primeiro esse dia antes de clonar.",
+                ], 422);
+            }
+
+            $sobrescrever = (bool)($validated['sobrescrever'] ?? false);
+            $alocacoesCopiadas = 0;
+            $alocacoesApagadas = 0;
+
+            // Buscar alocações do dia de referência
+            $diaNumRef = $this->mapearDiaParaNumero($validated['referencia']['dia']);
+            $alocacoesOrigem = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)
+                ->where('semana', $validated['referencia']['semana'])
+                ->where('dia', $diaNumRef)
+                ->get();
+
+            if ($alocacoesOrigem->isEmpty()) {
+                DB::rollBack();
+
+                $diasNomes = [
+                    'segunda' => 'Segunda-feira',
+                    'terca' => 'Terça-feira',
+                    'quarta' => 'Quarta-feira',
+                    'quinta' => 'Quinta-feira',
+                    'sexta' => 'Sexta-feira',
+                    'sabado' => 'Sábado',
+                    'domingo' => 'Domingo'
+                ];
+                $diaLabel = $diasNomes[$validated['referencia']['dia']] ?? $validated['referencia']['dia'];
+
+                return response()->json([
+                    'success' => false,
+                    'message' => "O dia de referência (Semana {$validated['referencia']['semana']} - {$diaLabel}) não possui plantonistas alocados para clonar. Aloque plantonistas primeiro nesse dia.",
+                ], 422);
+            }
+
+            foreach ($validated['destinos'] as $dest) {
+                // Ignorar destino igual à referência
+                if ((int)$dest['semana'] === (int)$validated['referencia']['semana'] && $dest['dia'] === $validated['referencia']['dia']) {
+                    continue;
+                }
+
+                $diaNumDest = $this->mapearDiaParaNumero($dest['dia']);
+
+                if ($sobrescrever) {
+                    // Apagar alocações do dia destino
+                    $apagados = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)
+                        ->where('semana', $dest['semana'])
+                        ->where('dia', $diaNumDest)
+                        ->delete();
+                    $alocacoesApagadas += $apagados;
+                }
+
+                // Copiar alocações de plantonistas
+                foreach ($alocacoesOrigem as $aloc) {
+                    // Verificar se já existe alocação no mesmo slot
+                    $existeAloc = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)
+                        ->where('semana', $dest['semana'])
+                        ->where('dia', $diaNumDest)
+                        ->where('turno_id', $aloc->turno_id)
+                        ->where('setor_id', $aloc->setor_id)
+                        ->where('slot', $aloc->slot)
+                        ->exists();
+
+                    if (!$existeAloc) {
+                        \App\Models\AlocacaoTemplate::create([
+                            'escala_padrao_id' => $escala->id,
+                            'semana' => $dest['semana'],
+                            'dia' => $diaNumDest,
+                            'turno_id' => $aloc->turno_id,
+                            'setor_id' => $aloc->setor_id,
+                            'slot' => $aloc->slot,
+                            'plantonista_id' => $aloc->plantonista_id,
+                        ]);
+                        $alocacoesCopiadas++;
+                    }
+                }
+            }
+            DB::commit();
+
+            $mensagem = "Clonagem concluída: {$alocacoesCopiadas} plantonista" . ($alocacoesCopiadas != 1 ? 's' : '') . " copiado" . ($alocacoesCopiadas != 1 ? 's' : '');
+            if ($sobrescrever && $alocacoesApagadas > 0) {
+                $mensagem .= " ({$alocacoesApagadas} alocações removidas antes)";
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $mensagem,
+                'alocacoesCopiadas' => $alocacoesCopiadas,
+                'alocacoesApagadas' => $alocacoesApagadas,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao clonar: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Clonar SEMANA inteira em lote (todas as alocações de uma semana para outras semanas)
+     * POST /api/escalas-padrao/{unidade}/clonar-semana
+     * Payload: {referencia_semana: int, destinos: [int, ...], sobrescrever: bool}
+     */
+    public function clonarSemanaLote(Request $request, Unidade $unidade)
+    {
+        $request->validate([
+            'referencia_semana' => 'required|integer|min:1|max:5',
+            'destinos' => 'required|array|min:1',
+            'destinos.*' => 'required|integer|min:1|max:5',
+            'sobrescrever' => 'boolean',
+        ]);
+
+        $semanaRef = $request->referencia_semana;
+        $destinos = $request->destinos;
+        $sobrescrever = $request->sobrescrever ?? false;
+
+        // Obter escala ativa
+        $escala = $unidade->escalaPadrao()->where('status', 'ativo')->first();
+        if (!$escala) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nenhuma escala padrão ativa encontrada para esta unidade.',
+            ], 404);
+        }
+
+        // Buscar todas as alocações da semana de referência
+        $alocacoesOrigem = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)
+            ->where('semana', $semanaRef)
+            ->get();
+
+        if ($alocacoesOrigem->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => "A semana {$semanaRef} não possui plantonistas alocados. Aloque plantonistas primeiro.",
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $alocacoesCopiadas = 0;
+            $alocacoesApagadas = 0;
+
+            // Para cada semana de destino
+            foreach ($destinos as $semanaDestino) {
+                // Não clonar para si mesmo
+                if ($semanaDestino == $semanaRef) {
+                    continue;
+                }
+
+                // Se sobrescrever, apagar alocações existentes na semana de destino
+                if ($sobrescrever) {
+                    $deleted = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)
+                        ->where('semana', $semanaDestino)
+                        ->delete();
+                    $alocacoesApagadas += $deleted;
+                }
+
+                // Copiar cada alocação da semana de referência para a semana de destino
+                foreach ($alocacoesOrigem as $aloc) {
+                    // Verificar se já existe (para evitar duplicados se não estiver sobrescrevendo)
+                    $existeAloc = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)
+                        ->where('semana', $semanaDestino)
+                        ->where('dia', $aloc->dia)
+                        ->where('turno_id', $aloc->turno_id)
+                        ->where('setor_id', $aloc->setor_id)
+                        ->where('slot', $aloc->slot)
+                        ->exists();
+
+                    if (!$existeAloc) {
+                        \App\Models\AlocacaoTemplate::create([
+                            'escala_padrao_id' => $escala->id,
+                            'semana' => $semanaDestino,
+                            'dia' => $aloc->dia,
+                            'turno_id' => $aloc->turno_id,
+                            'setor_id' => $aloc->setor_id,
+                            'slot' => $aloc->slot,
+                            'plantonista_id' => $aloc->plantonista_id,
+                        ]);
+                        $alocacoesCopiadas++;
+                    }
+                }
+            }
+            DB::commit();
+
+            $mensagem = "Clonagem de semana concluída: {$alocacoesCopiadas} plantonista" . ($alocacoesCopiadas != 1 ? 's' : '') . " copiado" . ($alocacoesCopiadas != 1 ? 's' : '');
+            if ($sobrescrever && $alocacoesApagadas > 0) {
+                $mensagem .= " ({$alocacoesApagadas} alocações removidas antes)";
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $mensagem,
+                'alocacoesCopiadas' => $alocacoesCopiadas,
+                'alocacoesApagadas' => $alocacoesApagadas,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao clonar semana: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Mapear nome do dia para número (domingo=1, segunda=2, ..., sabado=7)
+     */
+    private function mapearDiaParaNumero($dia)
+    {
+        $mapa = [
+            'domingo' => 1,
+            'segunda' => 2,
+            'terca' => 3,
+            'quarta' => 4,
+            'quinta' => 5,
+            'sexta' => 6,
+            'sabado' => 7,
+        ];
+        return $mapa[$dia] ?? 1;
+    }
 }

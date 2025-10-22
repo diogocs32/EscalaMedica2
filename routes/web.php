@@ -95,3 +95,13 @@ Route::get('/api/escalas-padrao/{unidade}/alocacoes', [EscalaPadraoController::c
 Route::post('/api/escalas-padrao/{unidade}/alocacoes', [EscalaPadraoController::class, 'storeAlocacao'])
     ->name('api.escalas-padrao.store-alocacao')
     ->middleware('api');
+
+// API para Clonar configurações de um dia para múltiplos destinos (lote)
+Route::post('/api/escalas-padrao/{unidade}/clonar-dia', [EscalaPadraoController::class, 'clonarDiaLote'])
+    ->name('api.escalas-padrao.clonar-dia')
+    ->middleware('api');
+
+// API para Clonar semana inteira para múltiplas semanas de destino (lote)
+Route::post('/api/escalas-padrao/{unidade}/clonar-semana', [EscalaPadraoController::class, 'clonarSemanaLote'])
+    ->name('api.escalas-padrao.clonar-dia')
+    ->middleware('api');

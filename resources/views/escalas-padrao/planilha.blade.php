@@ -234,6 +234,12 @@
                 <a href="{{ route('schedule-patterns') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left"></i> Voltar
                 </a>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalClonarDiaLote">
+                    <i class="bi bi-copy"></i> Clonar Dia
+                </button>
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalClonarSemanaLote">
+                    <i class="bi bi-calendar-week"></i> Clonar Semana
+                </button>
             </div>
         </div>
 
@@ -430,6 +436,162 @@
         </div>
     </div>
 
+    <!-- Modal Clonar Dia em Lote -->
+    <div class="modal fade" id="modalClonarDiaLote" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-copy me-2"></i>Clonar Configurações de um Dia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Semana de Referência</label>
+                            <select id="cloneSemanaRef" class="form-select">
+                                @foreach(range(1,5) as $s)
+                                <option value="{{ $s }}">Semana {{ $s }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Dia de Referência</label>
+                            <select id="cloneDiaRef" class="form-select">
+                                @foreach($diasOrdem as $d)
+                                <option value="{{ $d }}">{{ $diasLabels[$d] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div id="infoReferencia" class="alert alert-info small mb-0" style="display: none;">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <span id="textoInfoReferencia"></span>
+                            </div>
+                            <div id="avisoSemConfigs" class="alert alert-warning small mb-0" style="display: none;">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                O dia de referência selecionado não possui plantonistas alocados. Aloque plantonistas primeiro nesse dia.
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="mb-2 fw-semibold">Selecione os destinos</div>
+                    <div class="small text-muted mb-2">Escolha as semanas e dias que receberão uma cópia exata das configurações do dia de referência.</div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Semana</th>
+                                    @foreach($diasOrdem as $d)
+                                    <th class="text-center">{{ $diasLabels[$d] }}</th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(range(1,5) as $s)
+                                <tr>
+                                    <td><span class="fw-semibold">Semana {{ $s }}</span></td>
+                                    @foreach($diasOrdem as $d)
+                                    <td class="text-center">
+                                        <input class="form-check-input destino-checkbox" type="checkbox" data-semana="{{ $s }}" data-dia="{{ $d }}">
+                                    </td>
+                                    @endforeach
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="cloneSobrescrever">
+                        <label class="form-check-label" for="cloneSobrescrever">
+                            Sobrescrever destinos (apaga as configurações atuais dos destinos antes de clonar)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="text-muted small me-auto">A operação pode levar alguns segundos. A página será recarregada após concluir.</div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarClone">
+                        <i class="bi bi-clipboard-check"></i> Confirmar Clonagem
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Clonar Semana em Lote -->
+    <div class="modal fade" id="modalClonarSemanaLote" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-calendar-week text-success me-2"></i>
+                        Clonar Semana Completa
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Esta ferramenta copia <strong>todas as alocações de plantonistas</strong> de uma semana inteira para outras semanas.
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Semana de Referência</label>
+                            <select id="cloneSemanaRefSemanal" class="form-select">
+                                @foreach(range(1,5) as $s)
+                                <option value="{{ $s }}">Semana {{ $s }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div id="infoReferenciaSemana" class="alert alert-info small mb-0" style="display: none;">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <span id="textoInfoReferenciaSemana"></span>
+                            </div>
+                            <div id="avisoSemAlocacoesSemana" class="alert alert-warning small mb-0" style="display: none;">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                A semana de referência selecionada não possui plantonistas alocados. Aloque plantonistas primeiro nessa semana.
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="mb-2 fw-semibold">Selecione as semanas de destino</div>
+                    <div class="small text-muted mb-3">Escolha as semanas que receberão uma cópia de todas as alocações da semana de referência.</div>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach(range(1,5) as $s)
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input destino-semana-checkbox" type="checkbox" id="destSemana{{ $s }}" value="{{ $s }}">
+                            <label class="form-check-label" for="destSemana{{ $s }}">
+                                Semana {{ $s }}
+                            </label>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="cloneSemanalSobrescrever">
+                        <label class="form-check-label" for="cloneSemanalSobrescrever">
+                            Sobrescrever destinos (apaga as alocações atuais das semanas de destino antes de clonar)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="text-muted small me-auto">A operação pode levar alguns segundos. A página será recarregada após concluir.</div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-success" id="btnConfirmarCloneSemana">
+                        <i class="bi bi-calendar-check"></i> Confirmar Clonagem
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -439,6 +601,280 @@
         let plantonistas = [];
         let alocacoes = {}; // {semana-dia-turno-setor-slot: plantonista_id}
         const unidadeId = parseInt('{{ $unidade->id }}');
+
+        // Mapear dia nome para número
+        const diasMap = {
+            'domingo': 1,
+            'segunda': 2,
+            'terca': 3,
+            'quarta': 4,
+            'quinta': 5,
+            'sexta': 6,
+            'sabado': 7
+        };
+
+        // Função para contar alocações de plantonistas em um dia
+        function contarAlocacoesDia(semana, dia) {
+            const diaNum = diasMap[dia];
+            let count = 0;
+
+            // Percorrer as alocações em memória
+            for (const key in alocacoes) {
+                const [s, d, t, st, slot] = key.split('-').map(Number);
+                if (s === semana && d === diaNum) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        // Função para contar alocações de plantonistas em uma semana inteira
+        function contarAlocacoesSemana(semana) {
+            let count = 0;
+
+            // Percorrer as alocações em memória
+            for (const key in alocacoes) {
+                const [s, d, t, st, slot] = key.split('-').map(Number);
+                if (s === semana) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        // Atualizar info da referência de DIA quando mudar semana ou dia
+        function atualizarInfoReferencia() {
+            const semana = parseInt(document.getElementById('cloneSemanaRef').value);
+            const dia = document.getElementById('cloneDiaRef').value;
+            const numAlocacoes = contarAlocacoesDia(semana, dia);
+
+            const infoDiv = document.getElementById('infoReferencia');
+            const avisoDiv = document.getElementById('avisoSemConfigs');
+            const textoInfo = document.getElementById('textoInfoReferencia');
+            const btnConfirmar = document.getElementById('btnConfirmarClone');
+
+            if (numAlocacoes > 0) {
+                textoInfo.textContent = `Este dia possui ${numAlocacoes} plantonista${numAlocacoes > 1 ? 's alocado' : ' alocado'}${numAlocacoes > 1 ? 's' : ''} que ${numAlocacoes > 1 ? 'serão copiados' : 'será copiado'}.`;
+                infoDiv.style.display = 'block';
+                avisoDiv.style.display = 'none';
+                btnConfirmar.disabled = false;
+            } else {
+                infoDiv.style.display = 'none';
+                avisoDiv.style.display = 'block';
+                btnConfirmar.disabled = true;
+            }
+        }
+
+        // Atualizar info da referência de SEMANA quando mudar semana
+        function atualizarInfoReferenciaSemana() {
+            const semana = parseInt(document.getElementById('cloneSemanaRefSemanal').value);
+            const numAlocacoes = contarAlocacoesSemana(semana);
+
+            const infoDiv = document.getElementById('infoReferenciaSemana');
+            const avisoDiv = document.getElementById('avisoSemAlocacoesSemana');
+            const textoInfo = document.getElementById('textoInfoReferenciaSemana');
+            const btnConfirmar = document.getElementById('btnConfirmarCloneSemana');
+
+            if (numAlocacoes > 0) {
+                textoInfo.textContent = `Esta semana possui ${numAlocacoes} plantonista${numAlocacoes > 1 ? 's alocado' : ' alocado'}${numAlocacoes > 1 ? 's' : ''} que ${numAlocacoes > 1 ? 'serão copiados' : 'será copiado'}.`;
+                infoDiv.style.display = 'block';
+                avisoDiv.style.display = 'none';
+                btnConfirmar.disabled = false;
+            } else {
+                infoDiv.style.display = 'none';
+                avisoDiv.style.display = 'block';
+                btnConfirmar.disabled = true;
+            }
+        }
+
+        // Handler do modal de clonagem
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🔧 Inicializando handler de clonagem...');
+            const btnConfirmarClone = document.getElementById('btnConfirmarClone');
+            console.log('🔘 Botão encontrado:', btnConfirmarClone);
+
+            // Listeners para atualizar info quando mudar referência
+            document.getElementById('cloneSemanaRef').addEventListener('change', atualizarInfoReferencia);
+            document.getElementById('cloneDiaRef').addEventListener('change', atualizarInfoReferencia);
+
+            // Atualizar info inicial quando abrir o modal
+            document.getElementById('modalClonarDiaLote').addEventListener('shown.bs.modal', atualizarInfoReferencia);
+
+            if (btnConfirmarClone) {
+                btnConfirmarClone.addEventListener('click', async () => {
+                    console.log('🚀 Clique no botão Confirmar Clonagem detectado!');
+
+                    const semanaRef = parseInt(document.getElementById('cloneSemanaRef').value);
+                    const diaRef = document.getElementById('cloneDiaRef').value;
+                    const sobrescrever = document.getElementById('cloneSobrescrever').checked;
+
+                    console.log('📋 Referência:', {
+                        semanaRef,
+                        diaRef,
+                        sobrescrever
+                    });
+
+                    const destinos = Array.from(document.querySelectorAll('.destino-checkbox:checked')).map(chk => ({
+                        semana: parseInt(chk.dataset.semana),
+                        dia: chk.dataset.dia
+                    }));
+
+                    console.log('🎯 Destinos selecionados:', destinos);
+
+                    if (!destinos.length) {
+                        alert('Selecione pelo menos um destino para clonar.');
+                        return;
+                    }
+
+                    // Remover destino igual à referência, se marcado
+                    const destinosFiltrados = destinos.filter(d => !(d.semana === semanaRef && d.dia === diaRef));
+                    console.log('✅ Destinos filtrados:', destinosFiltrados);
+
+                    if (!destinosFiltrados.length) {
+                        alert('Os destinos selecionados coincidem com o dia de referência. Selecione outros destinos.');
+                        return;
+                    }
+
+                    const payload = {
+                        referencia: {
+                            semana: semanaRef,
+                            dia: diaRef
+                        },
+                        destinos: destinosFiltrados,
+                        sobrescrever: sobrescrever
+                    };
+
+                    console.log('📦 Payload completo:', payload);
+
+                    try {
+                        const url = '{{ url("/api/escalas-padrao") }}/' + unidadeId + '/clonar-dia';
+                        console.log('🌐 URL da requisição:', url);
+
+                        const resp = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        console.log('📡 Resposta recebida. Status:', resp.status);
+
+                        const text = await resp.text();
+                        console.log('📄 Texto da resposta:', text.substring(0, 500));
+
+                        let result;
+                        try {
+                            result = JSON.parse(text);
+                        } catch (_) {
+                            result = {
+                                success: false,
+                                message: text.substring(0, 200)
+                            };
+                        }
+
+                        console.log('✨ Resultado parseado:', result);
+
+                        if (!resp.ok || !result.success) {
+                            alert(result.message || 'Erro ao clonar.');
+                            return;
+                        }
+
+                        alert(result.message || 'Clonagem concluída. A página será recarregada.');
+                        window.location.reload();
+                    } catch (e) {
+                        console.error('❌ Erro na clonagem:', e);
+                        alert('Erro na clonagem. Verifique a conexão.');
+                    }
+                });
+            } else {
+                console.error('❌ Botão btnConfirmarClone não encontrado!');
+            }
+
+            // === Handler para CLONAR SEMANA ===
+            const btnConfirmarCloneSemana = document.getElementById('btnConfirmarCloneSemana');
+            console.log('🔘 Botão clonar semana encontrado:', btnConfirmarCloneSemana);
+
+            // Listener para atualizar info quando mudar semana de referência
+            document.getElementById('cloneSemanaRefSemanal').addEventListener('change', atualizarInfoReferenciaSemana);
+
+            // Atualizar info inicial quando abrir o modal
+            document.getElementById('modalClonarSemanaLote').addEventListener('shown.bs.modal', atualizarInfoReferenciaSemana);
+
+            if (btnConfirmarCloneSemana) {
+                btnConfirmarCloneSemana.addEventListener('click', async () => {
+                    console.log('📅 Clique no botão Confirmar Clonagem de Semana detectado!');
+
+                    const semanaRef = parseInt(document.getElementById('cloneSemanaRefSemanal').value);
+                    const sobrescrever = document.getElementById('cloneSemanalSobrescrever').checked;
+
+                    console.log('📋 Referência de semana:', {
+                        semanaRef,
+                        sobrescrever
+                    });
+
+                    const destinos = Array.from(document.querySelectorAll('.destino-semana-checkbox:checked')).map(chk => parseInt(chk.value));
+
+                    console.log('🎯 Semanas de destino selecionadas:', destinos);
+
+                    if (!destinos.length) {
+                        alert('Selecione pelo menos uma semana de destino para clonar.');
+                        return;
+                    }
+
+                    const payload = {
+                        referencia_semana: semanaRef,
+                        destinos: destinos,
+                        sobrescrever: sobrescrever
+                    };
+
+                    console.log('📦 Payload completo:', payload);
+
+                    try {
+                        const url = '{{ url("/api/escalas-padrao") }}/' + unidadeId + '/clonar-semana';
+                        console.log('🌐 URL da requisição:', url);
+
+                        const resp = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        console.log('📡 Resposta recebida. Status:', resp.status);
+
+                        const text = await resp.text();
+                        console.log('📄 Texto da resposta:', text.substring(0, 500));
+
+                        let result;
+                        try {
+                            result = JSON.parse(text);
+                        } catch (_) {
+                            result = {
+                                success: false,
+                                message: text.substring(0, 200)
+                            };
+                        }
+
+                        console.log('✨ Resultado parseado:', result);
+
+                        if (!resp.ok || !result.success) {
+                            alert(result.message || 'Erro ao clonar semana.');
+                            return;
+                        }
+
+                        alert(result.message || 'Clonagem de semana concluída. A página será recarregada.');
+                        window.location.reload();
+                    } catch (e) {
+                        console.error('❌ Erro na clonagem de semana:', e);
+                        alert('Erro na clonagem. Verifique a conexão.');
+                    }
+                });
+            } else {
+                console.error('❌ Botão btnConfirmarCloneSemana não encontrado!');
+            }
+        });
 
         // Carregar plantonistas e inicializar Select2
         $(document).ready(function() {
