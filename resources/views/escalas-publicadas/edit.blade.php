@@ -214,12 +214,40 @@
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label class="form-label">Plantonista</label>
+                                                                @php
+                                                                $diaKey = $row['data']->format('Y-m-d');
+                                                                // Extrair apenas a parte da hora, mesmo que venha com data
+                                                                $horaInicioAtual = $turno->hora_inicio ? \Carbon\Carbon::parse($turno->hora_inicio)->format('H:i:s') : '00:00:00';
+                                                                $horaFimAtual = $turno->hora_fim ? \Carbon\Carbon::parse($turno->hora_fim)->format('H:i:s') : '00:00:00';
+                                                                // Janela do turno atual
+                                                                $inicioNovo = \Carbon\Carbon::parse($diaKey.' '.$horaInicioAtual);
+                                                                $fimNovo = \Carbon\Carbon::parse($diaKey.' '.$horaFimAtual);
+                                                                if ($fimNovo->lessThanOrEqualTo($inicioNovo)) { $fimNovo->addDay(); }
+                                                                @endphp
                                                                 <select name="plantonista_id" class="form-select">
                                                                     <option value="">— Selecionar —</option>
                                                                     @foreach($plantonistas as $p)
-                                                                    <option value="{{ $p->id }}" {{ $slot->plantonista_id == $p->id ? 'selected' : '' }}>{{ $p->nome }}</option>
-                                                                    @endforeach
+                                                                    @php
+                                                                    $disabled = false;
+                                                                    if (!empty($ocupacaoPorDia[$diaKey][$p->id])) {
+                                                                    foreach ($ocupacaoPorDia[$diaKey][$p->id] as $ocup) {
+                                                                    // Normalizar para HH:MM:SS caso venha com data
+                                                                    $iniHora = $ocup['inicio'] ? \Carbon\Carbon::parse($ocup['inicio'])->format('H:i:s') : '00:00:00';
+                                                                    $fimHora = $ocup['fim'] ? \Carbon\Carbon::parse($ocup['fim'])->format('H:i:s') : '00:00:00';
+                                                                    $ini = \Carbon\Carbon::parse($diaKey.' '.$iniHora);
+                                                                    $fim = \Carbon\Carbon::parse($diaKey.' '.$fimHora);
+                                                                    if ($fim->lessThanOrEqualTo($ini)) { $fim->addDay(); }
+                                                                    // Sobreposição: (inicioNovo < fim) && (ini < fimNovo)
+                                                                        if ($inicioNovo->lt($fim) && $ini->lt($fimNovo)) { $disabled = true; break; }
+                                                                        }
+                                                                        }
+                                                                        @endphp
+                                                                        <option value="{{ $p->id }}" {{ $slot->plantonista_id == $p->id ? 'selected' : '' }} {{ $disabled && $slot->plantonista_id != $p->id ? 'disabled' : '' }}>
+                                                                            {{ $p->nome }} {{ $disabled && $slot->plantonista_id != $p->id ? '(conflito)' : '' }}
+                                                                        </option>
+                                                                        @endforeach
                                                                 </select>
+                                                                <small class="text-muted">Opções marcadas como (conflito) estão desativadas por sobreposição de horário neste dia.</small>
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
