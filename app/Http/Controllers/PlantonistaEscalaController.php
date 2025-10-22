@@ -38,6 +38,8 @@ class PlantonistaEscalaController extends Controller
                 ->get();
         }
 
+        $totalAlocacoes = $alocacoes->count();
+
         // Agrupar por cidade → unidade
         $escalasPorCidade = $alocacoes->groupBy(function ($aloc) {
             return $aloc->escalaPadrao->unidade->cidade->nome ?? 'Cidade Desconhecida';
@@ -50,7 +52,8 @@ class PlantonistaEscalaController extends Controller
         return view('plantonista-escalas.index', compact(
             'plantonistas',
             'plantonistaSelecionado',
-            'escalasPorCidade'
+            'escalasPorCidade',
+            'totalAlocacoes'
         ));
     }
 }

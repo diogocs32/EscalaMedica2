@@ -180,30 +180,23 @@
                     <i class="bi bi-person-circle"></i>
                     <strong>{{ $plantonistaSelecionado->nome }}</strong>
                 </h5>
-                <div class="row g-3">
+                <div class="d-flex flex-wrap align-items-center" style="gap:.75rem;">
+                    <span><span class="text-muted">Plantões alocados:</span> <span class="fw-semibold">{{ $totalAlocacoes ?? 0 }}</span></span>
                     @if($plantonistaSelecionado->crm)
-                    <div class="col-md-3">
-                        <small class="text-muted">CRM</small>
-                        <div>{{ $plantonistaSelecionado->crm }}</div>
-                    </div>
+                    <span class="text-muted">•</span>
+                    <span><span class="text-muted">CRM:</span> {{ $plantonistaSelecionado->crm }}</span>
                     @endif
                     @if($plantonistaSelecionado->especialidade)
-                    <div class="col-md-3">
-                        <small class="text-muted">Especialidade</small>
-                        <div>{{ $plantonistaSelecionado->especialidade }}</div>
-                    </div>
+                    <span class="text-muted">•</span>
+                    <span><span class="text-muted">Especialidade:</span> {{ $plantonistaSelecionado->especialidade }}</span>
                     @endif
                     @if($plantonistaSelecionado->telefone)
-                    <div class="col-md-3">
-                        <small class="text-muted">Telefone</small>
-                        <div>{{ $plantonistaSelecionado->telefone }}</div>
-                    </div>
+                    <span class="text-muted">•</span>
+                    <span><span class="text-muted">Telefone:</span> {{ $plantonistaSelecionado->telefone }}</span>
                     @endif
                     @if($plantonistaSelecionado->email)
-                    <div class="col-md-3">
-                        <small class="text-muted">E-mail</small>
-                        <div>{{ $plantonistaSelecionado->email }}</div>
-                    </div>
+                    <span class="text-muted">•</span>
+                    <span><span class="text-muted">E-mail:</span> {{ $plantonistaSelecionado->email }}</span>
                     @endif
                 </div>
             </div>
