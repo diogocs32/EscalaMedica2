@@ -83,5 +83,15 @@ Route::put('/unidades/{unidade}/escala-padrao/configuracao/{configuracao}', [Esc
 // Rotas para Alocações
 Route::resource('alocacoes', AlocacaoController::class);
 
-// API para Atribuição Rápida
-Route::get('/api/plantonistas-ativos', [PlantonisταController::class, 'apiAtivos'])->name('api.plantonistas.ativos');
+// API para Atribuição Rápida (sem middleware CSRF)
+Route::get('/api/plantonistas-ativos', [PlantonisταController::class, 'apiAtivos'])
+    ->name('api.plantonistas.ativos')
+    ->middleware('api');
+
+// API para Alocações Template (Escala Padrão) - sem middleware CSRF
+Route::get('/api/escalas-padrao/{unidade}/alocacoes', [EscalaPadraoController::class, 'getAlocacoes'])
+    ->name('api.escalas-padrao.alocacoes')
+    ->middleware('api');
+Route::post('/api/escalas-padrao/{unidade}/alocacoes', [EscalaPadraoController::class, 'storeAlocacao'])
+    ->name('api.escalas-padrao.store-alocacao')
+    ->middleware('api');

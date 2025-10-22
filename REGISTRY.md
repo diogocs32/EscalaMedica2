@@ -44,6 +44,7 @@
 | **Histórico** | `HISTORICO_COMMITS.md` | Log de todas as alterações do sistema |
 | **Sistema Escala Padrão** | `SISTEMA_ESCALA_PADRAO.md` | 📅 Arquitetura técnica da escala padrão de 5 semanas |
 | **Guia de Uso Escala** | `GUIA_USO_ESCALA_PADRAO.md` | 📖 Tutorial completo de uso do sistema de escala padrão |
+| **Checklist de Validação** | `CHECKLIST_VALIDACAO.md` | ✅ **CRÍTICO**: Checklist obrigatório antes de cada commit |
 
 ---
 
@@ -746,6 +747,16 @@
 2. **Durante a implementação**: Use as convenções estabelecidas
 3. **Após implementar**: Atualize as seções relevantes com as novas informações
 4. **Commit**: Inclua as alterações deste arquivo no commit
+
+### ⚠️ REGRA CRÍTICA - COMMITS:
+**SEMPRE PERGUNTAR AO USUÁRIO ANTES DE COMMITAR**
+- ❌ NÃO commitar automaticamente após implementações
+- ❌ NÃO fazer push sem autorização explícita
+- ✅ IMPLEMENTAR as mudanças solicitadas
+- ✅ TESTAR e VALIDAR o código
+- ✅ PERGUNTAR: "Posso commitar as alterações agora?"
+- ✅ AGUARDAR confirmação do usuário antes de `git commit`
+- ✅ Só fazer `git push` após aprovação do commit
 
 ### Template para Novas Entradas:
 ```markdown

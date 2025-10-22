@@ -55,10 +55,10 @@ class EscalaPadraoController extends Controller
                 })->count();
             }
 
-            // Preenchidos: 0 por enquanto (será quando alocarmos plantonistas nas vagas)
-            $preenchidos = 0;
+            // Preenchidos: contar alocações da tabela alocacoes_template
+            $preenchidos = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escalaAtiva->id)->count();
 
-            // Buracos: enquanto não tiver médico alocado, buracos = total de slots
+            // Buracos: total de slots - preenchidos
             $buracos = $totalSlots - $preenchidos;
             $taxa = $totalSlots > 0 ? round(($preenchidos / $totalSlots) * 100, 1) : 0;
 
@@ -149,8 +149,10 @@ class EscalaPadraoController extends Controller
             $q->where('escala_padrao_id', $escala->id);
         })->sum('quantidade_necessaria');
 
-        $preenchidos = 0; // ainda não há alocações de plantonistas
-        $buracos = $totalSlots - $preenchidos; // enquanto não tiver médico alocado, buracos = total de slots
+        // Preenchidos: contar alocações da tabela alocacoes_template
+        $preenchidos = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)->count();
+
+        $buracos = $totalSlots - $preenchidos;
         $taxa = $totalSlots > 0 ? round(($preenchidos / $totalSlots) * 100, 1) : 0;
 
         return view('escalas-padrao.planilha', [
@@ -419,6 +421,102 @@ class EscalaPadraoController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Erro ao atualizar: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * API: Obter todas as alocações de uma escala padrão
+     */
+    public function getAlocacoes(Unidade $unidade)
+    {
+        $escala = $unidade->escalaPadrao()->where('status', 'ativo')->firstOrFail();
+
+        $alocacoes = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)
+            ->with(['plantonista', 'turno', 'setor'])
+            ->get();
+
+        // Retornar como objeto {key: plantonista_id}
+        $resultado = [];
+        foreach ($alocacoes as $aloc) {
+            $key = "{$aloc->semana}-{$aloc->dia}-{$aloc->turno_id}-{$aloc->setor_id}-{$aloc->slot}";
+            $resultado[$key] = [
+                'id' => $aloc->id,
+                'plantonista_id' => $aloc->plantonista_id,
+                'plantonista_nome' => $aloc->plantonista->nome,
+            ];
+        }
+
+        return response()->json($resultado);
+    }
+
+    /**
+     * API: Salvar ou remover uma alocação
+     */
+    public function storeAlocacao(Request $request, Unidade $unidade)
+    {
+        try {
+            $validated = $request->validate([
+                'semana' => 'required|integer|min:1|max:5',
+                'dia' => 'required|integer|min:1|max:7',
+                'turno_id' => 'required|exists:turnos,id',
+                'setor_id' => 'required|exists:setores,id',
+                'slot' => 'required|integer|min:1',
+                'plantonista_id' => 'nullable|exists:plantonistas,id', // null = remover
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro de validação',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        $escala = $unidade->escalaPadrao()->where('status', 'ativo')->first();
+
+        if (!$escala) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nenhuma escala padrão ativa encontrada para esta unidade',
+            ], 404);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $conditions = [
+                'escala_padrao_id' => $escala->id,
+                'semana' => $validated['semana'],
+                'dia' => $validated['dia'],
+                'turno_id' => $validated['turno_id'],
+                'setor_id' => $validated['setor_id'],
+                'slot' => $validated['slot'],
+            ];
+
+            if ($validated['plantonista_id']) {
+                // Alocar ou atualizar
+                \App\Models\AlocacaoTemplate::updateOrCreate(
+                    $conditions,
+                    ['plantonista_id' => $validated['plantonista_id']]
+                );
+                $action = 'alocado';
+            } else {
+                // Remover
+                \App\Models\AlocacaoTemplate::where($conditions)->delete();
+                $action = 'removido';
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Plantonista {$action} com sucesso!",
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao salvar: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }

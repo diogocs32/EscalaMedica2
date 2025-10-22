@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Planilha da Escala Padrão - {{ $unidade->nome }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -317,15 +318,22 @@
                             <td class="text-center">
                                 @if($qtd > 0)
                                 @for($i = 1; $i <= $qtd; $i++)
+                                    @php
+                                    // Mapear dia para número: domingo=1, segunda=2, ..., sabado=7
+                                    $diasMap=['domingo'=> 1, 'segunda' => 2, 'terca' => 3, 'quarta' => 4, 'quinta' => 5, 'sexta' => 6, 'sabado' => 7];
+                                    $diaNum = $diasMap[$dKey] ?? 1;
+                                    $slotKey = $sem . '-' . $diaNum . '-' . $tId . '-' . $sId . '-' . $i;
+                                    @endphp
                                     <span class="badge badge-soft badge-slot mb-1"
-                                    data-semana="{{ $sem }}"
-                                    data-dia="{{ $dKey }}"
-                                    data-turno="{{ $tId }}"
-                                    data-setor="{{ $sId }}"
-                                    data-slot="{{ $i }}"
-                                    data-turno-inicio="{{ $info['turno']->hora_inicio }}"
-                                    data-turno-fim="{{ $info['turno']->hora_fim }}">
-                                    Buraco {{ $i }}
+                                        data-semana="{{ $sem }}"
+                                        data-dia="{{ $diaNum }}"
+                                        data-turno="{{ $tId }}"
+                                        data-setor="{{ $sId }}"
+                                        data-slot="{{ $i }}"
+                                        data-slot-key="{{ $slotKey }}"
+                                        data-turno-inicio="{{ $info['turno']->hora_inicio }}"
+                                        data-turno-fim="{{ $info['turno']->hora_fim }}">
+                                        Buraco {{ $i }}
                                     </span>
                                     @endfor
                                     @else
@@ -399,6 +407,7 @@
         let plantonistaSelecionado = null;
         let plantonistas = [];
         let alocacoes = {}; // {semana-dia-turno-setor-slot: plantonista_id}
+        const unidadeId = parseInt('{{ $unidade->id }}');
 
         // Carregar plantonistas e inicializar Select2
         $(document).ready(function() {
@@ -408,8 +417,10 @@
         // Função para carregar plantonistas
         async function carregarPlantonistas() {
             try {
+                console.log('Carregando plantonistas...');
                 const response = await fetch('{{ url("/api/plantonistas-ativos") }}');
                 plantonistas = await response.json();
+                console.log('Plantonistas carregados:', plantonistas.length);
 
                 // Inicializar Select2
                 $('#selectPlantonista').select2({
@@ -430,9 +441,42 @@
                     limparSelecao();
                 });
 
+                // Carregar alocações DEPOIS dos plantonistas
+                await carregarAlocacoes();
+
             } catch (error) {
                 console.error('Erro ao carregar plantonistas:', error);
                 alert('Erro ao carregar plantonistas. Verifique a conexão.');
+            }
+        }
+
+        // Função para carregar alocações existentes
+        async function carregarAlocacoes() {
+            try {
+                const response = await fetch('{{ url("/api/escalas-padrao") }}/' + unidadeId + '/alocacoes');
+                const data = await response.json();
+
+                // Normalizar: manter mapa key -> plantonista_id (compatível com o restante do código)
+                alocacoes = {};
+
+                // Renderizar alocações na planilha
+                for (const [key, aloc] of Object.entries(data)) {
+                    alocacoes[key] = aloc.plantonista_id;
+                    const slot = document.querySelector(`[data-slot-key="${key}"]`);
+                    if (slot) {
+                        const plantonista = plantonistas.find(p => p.id == aloc.plantonista_id);
+                        if (plantonista) {
+                            slot.classList.remove('disponivel', 'indisponivel');
+                            slot.classList.add('ocupado');
+                            slot.textContent = plantonista.nome.split(' ')[0];
+                            slot.title = `${plantonista.nome}\nCRM: ${plantonista.crm || 'N/D'}`;
+                        }
+                    }
+                }
+
+                atualizarSlotsDisponiveis();
+            } catch (error) {
+                console.error('Erro ao carregar alocações:', error);
             }
         }
 
@@ -551,7 +595,7 @@
                 if (alocacoes[key]) {
                     slot.classList.remove('disponivel', 'indisponivel');
                     slot.classList.add('ocupado');
-                    const plantonista = plantonistas.find(p => p.id === alocacoes[key]);
+                    const plantonista = plantonistas.find(p => p.id == alocacoes[key]);
                     slot.textContent = plantonista ? plantonista.nome.split(' ')[0] : 'Ocupado';
                     return;
                 }
@@ -561,7 +605,7 @@
                     const [s, d, t, st, slotN] = k.split('-');
 
                     // Ignorar se não é mesmo dia, mesma semana ou mesmo plantonista
-                    if (s !== semana || d !== dia || alocacoes[k] !== plantonistaSelecionado.id) return false;
+                    if (s !== semana || d !== dia || Number(alocacoes[k]) !== Number(plantonistaSelecionado.id)) return false;
 
                     // Ignorar se é o EXATO mesmo slot (mesma semana, dia, turno, setor E número)
                     if (s === semana && d === dia && t === turno && st === setor && slotN === slotNum) return false;
@@ -613,7 +657,7 @@
         }
 
         // Alocar plantonista ao clicar no slot
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', async function(e) {
             if (!e.target.classList.contains('badge-slot')) return;
             if (!plantonistaSelecionado) {
                 alert('Selecione um plantonista primeiro no dropdown acima');
@@ -631,25 +675,80 @@
             if (slot.classList.contains('ocupado')) {
                 // Desalocar
                 const key = `${slot.dataset.semana}-${slot.dataset.dia}-${slot.dataset.turno}-${slot.dataset.setor}-${slot.dataset.slot}`;
-                delete alocacoes[key];
-                slot.classList.remove('ocupado');
-                slot.textContent = `Buraco ${slot.dataset.slot}`;
-                atualizarSlotsDisponiveis();
+
+                // Remover do banco
+                const success = await salvarAlocacao(key, null);
+                if (success) {
+                    delete alocacoes[key];
+                    slot.classList.remove('ocupado');
+                    slot.textContent = `Buraco ${slot.dataset.slot}`;
+                    atualizarSlotsDisponiveis();
+                }
                 return;
             }
 
             // Alocar
             const key = `${slot.dataset.semana}-${slot.dataset.dia}-${slot.dataset.turno}-${slot.dataset.setor}-${slot.dataset.slot}`;
-            alocacoes[key] = plantonistaSelecionado.id;
 
-            slot.classList.remove('disponivel');
-            slot.classList.add('ocupado');
-            slot.textContent = plantonistaSelecionado.nome.split(' ')[0];
-            slot.title = plantonistaSelecionado.nome;
+            // Salvar no banco
+            const success = await salvarAlocacao(key, plantonistaSelecionado.id);
+            if (success) {
+                alocacoes[key] = plantonistaSelecionado.id;
 
-            // Atualizar disponibilidade
-            atualizarSlotsDisponiveis();
+                slot.classList.remove('disponivel');
+                slot.classList.add('ocupado');
+                slot.textContent = plantonistaSelecionado.nome.split(' ')[0];
+                slot.title = plantonistaSelecionado.nome;
+
+                // Atualizar disponibilidade
+                atualizarSlotsDisponiveis();
+            }
         });
+
+        // Função para salvar/remover alocação via API
+        async function salvarAlocacao(key, plantonista_id) {
+            const [semana, dia, turno_id, setor_id, slot] = key.split('-');
+
+            const payload = {
+                semana: parseInt(semana),
+                dia: parseInt(dia),
+                turno_id: parseInt(turno_id),
+                setor_id: parseInt(setor_id),
+                slot: parseInt(slot),
+                plantonista_id: plantonista_id
+            };
+
+            try {
+                const url = '{{ url("/api/escalas-padrao") }}/' + unidadeId + '/alocacoes';
+                console.log('🚀 POST para:', url);
+                console.log('📦 Payload:', payload);
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log('📡 Status da resposta:', response.status);
+                const responseText = await response.text();
+                console.log('📄 Resposta recebida (primeiros 200 chars):', responseText.substring(0, 200));
+
+                const result = JSON.parse(responseText);
+
+                if (!response.ok || !result.success) {
+                    alert(result.message || 'Erro ao salvar alocação');
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Erro ao salvar alocação:', error);
+                alert('Erro ao salvar alocação. Verifique a conexão.');
+                return false;
+            }
+        }
     </script>
 </body>
 
