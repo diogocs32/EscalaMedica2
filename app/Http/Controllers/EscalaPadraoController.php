@@ -861,6 +861,7 @@ class EscalaPadraoController extends Controller
     {
         $request->validate([
             'periodo' => 'required|date_format:Y-m',
+            'substituir' => 'sometimes|boolean',
         ]);
 
         [$ano, $mes] = explode('-', $request->periodo);
@@ -872,10 +873,31 @@ class EscalaPadraoController extends Controller
             return redirect()->back()->with('error', 'Esta unidade não possui escala padrão ativa.');
         }
 
+        // Verificar se já existe publicação para este período
+        $publicacaoExistente = \App\Models\EscalaPublicada::where('unidade_id', $unidade->id)
+            ->where('ano', $ano)
+            ->where('mes', $mes)
+            ->first();
+
+        if ($publicacaoExistente && !$request->input('substituir', false)) {
+            return redirect()->back()
+                ->with('warning', "Já existe uma escala publicada para {$mes}/{$ano}. Deseja substituí-la?")
+                ->with('confirm_substituir', true)
+                ->with('periodo', $request->periodo)
+                ->with('unidade_id', $unidade->id);
+        }
+
         try {
             DB::beginTransaction();
 
-            // Criar registro de escala publicada (tabela será criada)
+            // Se existe e usuário confirmou substituição, deletar a antiga
+            if ($publicacaoExistente) {
+                // Deletar alocações antigas (cascade)
+                $publicacaoExistente->alocacoes()->delete();
+                $publicacaoExistente->delete();
+            }
+
+            // Criar registro de escala publicada
             $escalaPublicada = \App\Models\EscalaPublicada::create([
                 'unidade_id' => $unidade->id,
                 'escala_padrao_id' => $escalaPadrao->id,
@@ -884,16 +906,22 @@ class EscalaPadraoController extends Controller
                 'status' => 'em_edicao',
             ]);
 
-            // Processar cada dia do mês
+            // Processar cada dia do mês (1 a 31)
             $diasNoMes = cal_days_in_month(CAL_GREGORIAN, (int)$mes, (int)$ano);
-            $vigenciaInicio = \Carbon\Carbon::parse($escalaPadrao->vigencia_inicio);
+            $vigenciaInicio = \Carbon\Carbon::parse($escalaPadrao->vigencia_inicio)->startOfDay();
 
             for ($dia = 1; $dia <= $diasNoMes; $dia++) {
-                $dataAtual = \Carbon\Carbon::create($ano, $mes, $dia);
+                $dataAtual = \Carbon\Carbon::create($ano, $mes, $dia)->startOfDay();
 
                 // Calcular qual semana do ciclo (1-5)
-                $diasDesdeVigencia = $vigenciaInicio->diffInDays($dataAtual);
+                // Suporta datas ANTES e DEPOIS da vigência
+                $diasDesdeVigencia = $dataAtual->diffInDays($vigenciaInicio, false); // false = signed diff
                 $numeroDaSemana = (int)(floor($diasDesdeVigencia / 7) % 5) + 1;
+
+                // Garantir que o número da semana esteja entre 1 e 5
+                if ($numeroDaSemana <= 0) {
+                    $numeroDaSemana = 5 + ($numeroDaSemana % 5);
+                }
 
                 // Nome do dia da semana (segunda, terca, etc)
                 $nomeDiaSemana = $this->getNomeDiaSemana($dataAtual->dayOfWeek);
@@ -909,27 +937,52 @@ class EscalaPadraoController extends Controller
 
                 if (!$diaTemplate) continue;
 
-                // Copiar configurações para a escala publicada
-                foreach ($diaTemplate->configuracoes as $config) {
-                    for ($slot = 1; $slot <= $config->quantidade_necessaria; $slot++) {
+                // Buscar alocações template (médicos já preenchidos no padrão)
+                $alocacoesTemplate = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escalaPadrao->id)
+                    ->where('semana', $numeroDaSemana)
+                    ->where('dia', $nomeDiaSemana)
+                    ->orderBy('turno_id')
+                    ->orderBy('setor_id')
+                    ->orderBy('slot')
+                    ->get();
+
+                // Se houver alocações template, cloná-las COM os plantonistas
+                if ($alocacoesTemplate->count() > 0) {
+                    foreach ($alocacoesTemplate as $alocTemplate) {
                         \App\Models\AlocacaoPublicada::create([
                             'escala_publicada_id' => $escalaPublicada->id,
                             'data' => $dataAtual->format('Y-m-d'),
-                            'turno_id' => $config->turno_id,
-                            'setor_id' => $config->setor_id,
-                            'plantonista_id' => null, // Vazio, será preenchido manualmente
-                            'status' => 'vago',
-                            'observacoes' => $config->observacoes,
+                            'turno_id' => $alocTemplate->turno_id,
+                            'setor_id' => $alocTemplate->setor_id,
+                            'plantonista_id' => $alocTemplate->plantonista_id, // ← CLONAR MÉDICO DO TEMPLATE
+                            'status' => $alocTemplate->plantonista_id ? 'preenchido' : 'vago',
+                            'observacoes' => null,
                         ]);
+                    }
+                } else {
+                    // Fallback: Se não houver alocações template, criar slots vazios baseado nas configurações
+                    foreach ($diaTemplate->configuracoes as $config) {
+                        for ($slot = 1; $slot <= $config->quantidade_necessaria; $slot++) {
+                            \App\Models\AlocacaoPublicada::create([
+                                'escala_publicada_id' => $escalaPublicada->id,
+                                'data' => $dataAtual->format('Y-m-d'),
+                                'turno_id' => $config->turno_id,
+                                'setor_id' => $config->setor_id,
+                                'plantonista_id' => null,
+                                'status' => 'vago',
+                                'observacoes' => $config->observacoes,
+                            ]);
+                        }
                     }
                 }
             }
 
             DB::commit();
 
+            $acao = $publicacaoExistente ? 'substituída' : 'publicada';
             return redirect()
                 ->route('alocacoes.index')
-                ->with('success', "Escala publicada com sucesso para {$mes}/{$ano}!");
+                ->with('success', "Escala {$acao} com sucesso para {$mes}/{$ano}!");
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Erro ao publicar escala: ' . $e->getMessage());

@@ -82,6 +82,41 @@
 
 <body>
     <div class="container py-4">
+        {{-- Alerta de Confirmação de Substituição --}}
+        @if(session('warning') && session('confirm_substituir'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Atenção!</strong> {{ session('warning') }}
+            <div class="mt-3">
+                <form method="POST" action="{{ route('escalas-padrao.publicar', session('unidade_id')) }}" style="display: inline;">
+                    @csrf
+                    <input type="hidden" name="periodo" value="{{ session('periodo') }}">
+                    <input type="hidden" name="substituir" value="1">
+                    <button type="submit" class="btn btn-warning btn-sm">
+                        <i class="bi bi-arrow-repeat"></i> Sim, substituir
+                    </button>
+                </form>
+                <button type="button" class="btn btn-secondary btn-sm ms-2" data-bs-dismiss="alert">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+        @endif
+
+        @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+
+        @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-x-circle-fill me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="page-title h3 mb-0"><i class="bi bi-diagram-3 me-1"></i> Padrões de Escala</h1>
             <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar</a>
