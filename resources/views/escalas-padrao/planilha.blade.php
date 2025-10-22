@@ -143,6 +143,37 @@
             border-color: rgba(13, 110, 253, .35);
         }
 
+        /* Buraco padrão (não alocado) – mesma paleta dos badges de métricas "Buracos" */
+        .badge-slot.buraco {
+            background: rgba(220, 53, 69, .12);
+            /* danger-subtle */
+            color: #dc3545;
+            /* text-danger */
+            border-color: rgba(220, 53, 69, .35);
+        }
+
+        /* Buraco disponível para o plantonista selecionado (mantém vermelho, apenas dá destaque) */
+        .badge-slot.buraco-disponivel {
+            animation: pulse 2s infinite;
+            border-color: rgba(220, 53, 69, .55);
+        }
+
+        /* Buraco indisponível (conflito) – mantém vermelho, porém indica bloqueio */
+        .badge-slot.buraco-indisponivel {
+            cursor: not-allowed;
+            opacity: 0.6;
+            border-style: dashed;
+        }
+
+        /* Ocupado pelo plantonista atualmente selecionado – mesma paleta de "Preenchidos" */
+        .badge-slot.ocupado-selecionado {
+            background: rgba(25, 135, 84, .12);
+            /* success-subtle */
+            color: #198754;
+            /* text-success */
+            border-color: rgba(25, 135, 84, .35);
+        }
+
         @keyframes pulse {
 
             0%,
@@ -324,7 +355,7 @@
                                     $diaNum = $diasMap[$dKey] ?? 1;
                                     $slotKey = $sem . '-' . $diaNum . '-' . $tId . '-' . $sId . '-' . $i;
                                     @endphp
-                                    <span class="badge badge-soft badge-slot mb-1"
+                                    <span class="badge badge-soft badge-slot buraco mb-1"
                                         data-semana="{{ $sem }}"
                                         data-dia="{{ $diaNum }}"
                                         data-turno="{{ $tId }}"
@@ -466,7 +497,7 @@
                     if (slot) {
                         const plantonista = plantonistas.find(p => p.id == aloc.plantonista_id);
                         if (plantonista) {
-                            slot.classList.remove('disponivel', 'indisponivel');
+                            slot.classList.remove('disponivel', 'indisponivel', 'buraco', 'ocupado-selecionado', 'buraco-disponivel', 'buraco-indisponivel');
                             slot.classList.add('ocupado');
                             slot.textContent = plantonista.nome.split(' ')[0];
                             slot.title = `${plantonista.nome}\nCRM: ${plantonista.crm || 'N/D'}`;
@@ -572,9 +603,25 @@
         // Atualizar visualização dos slots disponíveis
         function atualizarSlotsDisponiveis() {
             if (!plantonistaSelecionado) {
-                // Resetar todos os slots
+                // Resetar todos os slots: mostrar ocupados em azul e buracos em vermelho
                 document.querySelectorAll('.badge-slot').forEach(slot => {
-                    slot.classList.remove('disponivel', 'indisponivel', 'ocupado');
+                    const key = `${slot.dataset.semana}-${slot.dataset.dia}-${slot.dataset.turno}-${slot.dataset.setor}-${slot.dataset.slot}`;
+                    const pid = alocacoes[key];
+
+                    slot.classList.remove('disponivel', 'indisponivel', 'ocupado-selecionado', 'buraco-disponivel', 'buraco-indisponivel');
+
+                    if (pid) {
+                        // Ocupado (azul)
+                        slot.classList.remove('buraco');
+                        slot.classList.add('ocupado');
+                        const plantonista = plantonistas.find(p => p.id == pid);
+                        slot.textContent = plantonista ? plantonista.nome.split(' ')[0] : 'Ocupado';
+                    } else {
+                        // Buraco (vermelho)
+                        slot.classList.remove('ocupado');
+                        slot.classList.add('buraco');
+                        slot.textContent = `Buraco ${slot.dataset.slot}`;
+                    }
                 });
                 return;
             }
@@ -593,10 +640,17 @@
 
                 // Verificar se já está ocupado
                 if (alocacoes[key]) {
-                    slot.classList.remove('disponivel', 'indisponivel');
+                    slot.classList.remove('disponivel', 'indisponivel', 'buraco');
                     slot.classList.add('ocupado');
                     const plantonista = plantonistas.find(p => p.id == alocacoes[key]);
                     slot.textContent = plantonista ? plantonista.nome.split(' ')[0] : 'Ocupado';
+
+                    // Se ocupado pelo plantonista selecionado, destacar em verde
+                    if (Number(alocacoes[key]) === Number(plantonistaSelecionado.id)) {
+                        slot.classList.add('ocupado-selecionado');
+                    } else {
+                        slot.classList.remove('ocupado-selecionado');
+                    }
                     return;
                 }
 
@@ -643,15 +697,16 @@
                 });
 
                 if (temConflitoDia) {
-                    slot.classList.remove('disponivel', 'ocupado');
-                    slot.classList.add('indisponivel');
+                    // Conflito: manter buraco em vermelho, porém com indicação de bloqueio
+                    slot.classList.remove('disponivel', 'ocupado', 'ocupado-selecionado', 'buraco-disponivel');
+                    slot.classList.add('buraco', 'buraco-indisponivel');
                     slot.title = 'Conflito de horário com outra alocação';
                     return;
                 }
 
-                // Disponível
-                slot.classList.remove('indisponivel', 'ocupado');
-                slot.classList.add('disponivel');
+                // Disponível: manter visual de buraco em vermelho com leve destaque
+                slot.classList.remove('ocupado', 'ocupado-selecionado', 'buraco-indisponivel');
+                slot.classList.add('buraco', 'buraco-disponivel');
                 slot.title = 'Clique para alocar ' + plantonistaSelecionado.nome;
             });
         }
@@ -680,7 +735,8 @@
                 const success = await salvarAlocacao(key, null);
                 if (success) {
                     delete alocacoes[key];
-                    slot.classList.remove('ocupado');
+                    slot.classList.remove('ocupado', 'ocupado-selecionado');
+                    slot.classList.add('buraco');
                     slot.textContent = `Buraco ${slot.dataset.slot}`;
                     atualizarSlotsDisponiveis();
                 }
@@ -695,8 +751,8 @@
             if (success) {
                 alocacoes[key] = plantonistaSelecionado.id;
 
-                slot.classList.remove('disponivel');
-                slot.classList.add('ocupado');
+                slot.classList.remove('disponivel', 'buraco', 'buraco-disponivel', 'buraco-indisponivel');
+                slot.classList.add('ocupado', 'ocupado-selecionado');
                 slot.textContent = plantonistaSelecionado.nome.split(' ')[0];
                 slot.title = plantonistaSelecionado.nome;
 
