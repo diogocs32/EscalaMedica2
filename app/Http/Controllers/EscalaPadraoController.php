@@ -22,8 +22,7 @@ class EscalaPadraoController extends Controller
      */
     public function resumoGeral(Request $request)
     {
-        $query = Unidade::with(['cidade'])
-            ->orderBy('nome');
+        $query = Unidade::with(['cidade'])->orderBy('nome');
 
         // filtros simples (opcionais): status e busca por nome
         if ($request->filled('status') && in_array($request->status, ['ativo', 'inativo'])) {
@@ -36,13 +35,11 @@ class EscalaPadraoController extends Controller
 
         $unidades = $query->get();
 
-        // Montar métricas por unidade
         $cards = [];
         foreach ($unidades as $unidade) {
-            // Escala padrão ativa
             $escalaAtiva = $unidade->escalaPadrao()->where('status', 'ativo')->first();
 
-            // Total de Slots: soma das quantidades configuradas no template (slots criados na escala padrão)
+            // Total de Slots: soma das quantidades configuradas na escala padrão
             $totalSlots = 0;
             $configCount = 0;
             if ($escalaAtiva) {
@@ -55,11 +52,32 @@ class EscalaPadraoController extends Controller
                 })->count();
             }
 
-            // Preenchidos: contar alocações da tabela alocacoes_template
-            $preenchidos = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escalaAtiva->id)->count();
+            // Preenchidos (cap): soma, por grupo, o mínimo entre esperado e alocado
+            $preenchidos = 0;
+            if ($escalaAtiva && $totalSlots > 0) {
+                $diasMap = ['domingo' => 1, 'segunda' => 2, 'terca' => 3, 'quarta' => 4, 'quinta' => 5, 'sexta' => 6, 'sabado' => 7];
+                $semanas = $escalaAtiva->semanas()->with(['dias.configuracoes'])->get();
+                foreach ($semanas as $sem) {
+                    $s = (int) $sem->numero_semana;
+                    foreach ($sem->dias as $dia) {
+                        $diaNum = $diasMap[$dia->dia_semana] ?? null;
+                        if ($diaNum === null) continue;
+                        foreach ($dia->configuracoes as $cfg) {
+                            $qtd = (int) $cfg->quantidade_necessaria;
+                            $filled = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escalaAtiva->id)
+                                ->where('semana', $s)
+                                ->where('dia', $diaNum)
+                                ->where('turno_id', $cfg->turno_id)
+                                ->where('setor_id', $cfg->setor_id)
+                                ->whereNotNull('plantonista_id')
+                                ->count();
+                            $preenchidos += min($qtd, $filled);
+                        }
+                    }
+                }
+            }
 
-            // Buracos: total de slots - preenchidos
-            $buracos = $totalSlots - $preenchidos;
+            $buracos = max(0, $totalSlots - $preenchidos);
             $taxa = $totalSlots > 0 ? round(($preenchidos / $totalSlots) * 100, 1) : 0;
 
             $cards[] = [
@@ -69,8 +87,8 @@ class EscalaPadraoController extends Controller
                 'preenchidos' => $preenchidos,
                 'buracos' => $buracos,
                 'taxa' => $taxa,
-                'slots_configurados' => $totalSlots, // total de slots criados na escala padrão
-                'configs_linhas' => $configCount, // número de linhas de configuração
+                'slots_configurados' => $totalSlots,
+                'configs_linhas' => $configCount,
                 'status' => $escalaAtiva?->status ?? 'inexistente',
             ];
         }
@@ -149,10 +167,32 @@ class EscalaPadraoController extends Controller
             $q->where('escala_padrao_id', $escala->id);
         })->sum('quantidade_necessaria');
 
-        // Preenchidos: contar alocações da tabela alocacoes_template
-        $preenchidos = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)->count();
+        // Preenchidos (com "cap"): somar, por grupo (semana, dia, turno, setor), o mínimo entre
+        // a quantidade esperada e a quantidade realmente alocada no template. Isso evita que
+        // "excessos" em um grupo compensem buracos de outro grupo.
+        $diasMap = ['domingo' => 1, 'segunda' => 2, 'terca' => 3, 'quarta' => 4, 'quinta' => 5, 'sexta' => 6, 'sabado' => 7];
+        $preenchidosCap = 0;
+        foreach ($grid as $semNumber => $diasGrid) {
+            foreach ($diasGrid as $dKey => $turnosGrid) {
+                $diaNum = $diasMap[$dKey] ?? null;
+                if ($diaNum === null) continue;
+                foreach ($turnosGrid as $tId => $setoresGrid) {
+                    foreach ($setoresGrid as $sId => $qtdEsperada) {
+                        $filledCount = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)
+                            ->where('semana', (int) $semNumber)
+                            ->where('dia', (int) $diaNum)
+                            ->where('turno_id', (int) $tId)
+                            ->where('setor_id', (int) $sId)
+                            ->whereNotNull('plantonista_id')
+                            ->count();
+                        $preenchidosCap += min((int) $qtdEsperada, (int) $filledCount);
+                    }
+                }
+            }
+        }
 
-        $buracos = $totalSlots - $preenchidos;
+        $preenchidos = $preenchidosCap;
+        $buracos = max(0, $totalSlots - $preenchidos);
         $taxa = $totalSlots > 0 ? round(($preenchidos / $totalSlots) * 100, 1) : 0;
 
         return view('escalas-padrao.planilha', [
