@@ -44,6 +44,29 @@
         .legend .badge {
             font-size: .75rem;
         }
+
+        /* Melhorar legibilidade dos eventos (quebra de linha e tamanhos) */
+        .fc .fc-event-title,
+        .fc .fc-event-time {
+            white-space: normal;
+        }
+
+        .fc .fc-daygrid-event {
+            padding: .15rem .25rem;
+        }
+
+        .fc .fc-timegrid-event {
+            padding: .25rem .35rem;
+        }
+
+        .fc .fc-event .small {
+            font-size: .78rem;
+            line-height: 1.1;
+        }
+
+        .fc .fc-event .muted {
+            opacity: .85;
+        }
     </style>
 </head>
 
@@ -104,7 +127,7 @@
             const applyBtn = document.getElementById('applyFilters');
 
             const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
+                initialView: 'timeGridWeek',
                 height: 'auto',
                 locale: 'pt-br',
                 timeZone: 'local',
@@ -116,11 +139,18 @@
                 navLinks: true,
                 selectable: false,
                 editable: false,
+                expandRows: true,
+                dayMaxEventRows: 4,
+                moreLinkClick: 'popover',
+                displayEventEnd: true,
+                eventDisplay: 'block',
                 eventTimeFormat: {
                     hour: '2-digit',
                     minute: '2-digit',
                     meridiem: false
                 },
+                slotMinTime: '06:00:00',
+                slotMaxTime: '24:00:00',
                 events: function(fetchInfo, successCallback, failureCallback) {
                     const params = new URLSearchParams({
                         start: fetchInfo.startStr,
@@ -134,6 +164,21 @@
                         .then(data => successCallback(data))
                         .catch(err => failureCallback(err));
                 },
+                eventContent: function(arg) {
+                    // Construir conteúdo mais legível (3 linhas): Nome, Setor/Turno, Horário
+                    const p = arg.event.extendedProps || {};
+                    const nome = (arg.event.title || '').split(' • ')[0] || (p.plantonista || 'Vago');
+                    const setorTurno = [p.setor, p.turno].filter(Boolean).join(' • ');
+                    const horario = arg.timeText || '';
+                    const html = `
+                        <div class="fc-event-title fw-semibold">${nome}</div>
+                        ${setorTurno ? `<div class="small">${setorTurno}</div>` : ''}
+                        ${horario ? `<div class="small muted">${horario}</div>` : ''}
+                    `;
+                    return {
+                        html
+                    };
+                },
                 eventDidMount: function(info) {
                     // Tooltip nativo do browser
                     const p = info.event.extendedProps;
@@ -142,6 +187,18 @@
                     const setor = p.setor ? `\nSetor: ${p.setor}` : '';
                     const turno = p.turno ? `\nTurno: ${p.turno}` : '';
                     info.el.title = info.event.title + unidade + cidade + setor + turno;
+                },
+                eventClick: function(info) {
+                    // Preenche modal com detalhes
+                    const p = info.event.extendedProps || {};
+                    const modal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
+                    document.getElementById('evtTitle').innerText = info.event.title;
+                    document.getElementById('evtHorario').innerText = info.timeText || '';
+                    document.getElementById('evtUnidade').innerText = p.unidade || '-';
+                    document.getElementById('evtCidade').innerText = p.cidade || '-';
+                    document.getElementById('evtSetor').innerText = p.setor || '-';
+                    document.getElementById('evtTurno').innerText = p.turno || '-';
+                    modal.show();
                 }
             });
 
@@ -152,6 +209,31 @@
             });
         });
     </script>
+
+    <!-- Modal de detalhes do evento -->
+    <div class="modal fade" id="eventDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-info-circle me-1"></i> Detalhes do Plantão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2"><strong id="evtTitle">Título</strong></div>
+                    <div class="row g-2 small">
+                        <div class="col-6"><span class="text-muted">Horário:</span> <span id="evtHorario">-</span></div>
+                        <div class="col-6"><span class="text-muted">Unidade:</span> <span id="evtUnidade">-</span></div>
+                        <div class="col-6"><span class="text-muted">Cidade:</span> <span id="evtCidade">-</span></div>
+                        <div class="col-6"><span class="text-muted">Setor:</span> <span id="evtSetor">-</span></div>
+                        <div class="col-6"><span class="text-muted">Turno:</span> <span id="evtTurno">-</span></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
