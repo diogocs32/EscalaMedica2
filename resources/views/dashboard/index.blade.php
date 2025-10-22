@@ -252,7 +252,7 @@
                     <div class="col-12">
                         <h5 class="mb-3"><i class="bi bi-lightning-charge me-2"></i>Acesso Rápido</h5>
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-3 mb-3">
                         <div class="card quick-access-card" onclick="window.location.href='{{ route('alocacoes.index') }}';">
                             <div class="card-body text-center py-4">
                                 <i class="bi bi-calendar-check text-primary mb-3" style="font-size: 3rem;"></i>
@@ -261,7 +261,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-3 mb-3">
+                        <div class="card quick-access-card" onclick="window.location.href='{{ route('plantonista.escalas') }}';">
+                            <div class="card-body text-center py-4">
+                                <i class="bi bi-person-badge text-success mb-3" style="font-size: 3rem;"></i>
+                                <h6 class="card-title">Escalas do Plantonista</h6>
+                                <p class="card-text text-muted">Visão consolidada</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
                         <div class="card quick-access-card" onclick="window.location.href='#';">
                             <div class="card-body text-center py-4">
                                 <i class="bi bi-arrow-left-right text-warning mb-3" style="font-size: 3rem;"></i>
@@ -270,7 +279,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-3 mb-3">
                         <div class="card quick-access-card" onclick="window.location.href='#';">
                             <div class="card-body text-center py-4">
                                 <i class="bi bi-bar-chart text-info mb-3" style="font-size: 3rem;"></i>

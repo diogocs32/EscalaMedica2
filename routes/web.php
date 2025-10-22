@@ -10,6 +10,7 @@ use App\Http\Controllers\AlocacaoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EscalaPadraoController;
 use App\Http\Controllers\EscalaPublicadaController;
+use App\Http\Controllers\PlantonistaEscalaController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -90,6 +91,10 @@ Route::get('/escalas-publicadas/{escalaPublicada}/edit', [EscalaPublicadaControl
     ->name('escalas-publicadas.edit');
 Route::put('/escalas-publicadas/alocacoes/{alocacaoPublicada}', [EscalaPublicadaController::class, 'updateAlocacao'])
     ->name('escalas-publicadas.alocacoes.update');
+
+// Escalas do Plantonista - Visualização consolidada
+Route::get('/escalas/plantonista', [PlantonistaEscalaController::class, 'index'])
+    ->name('plantonista.escalas');
 
 // API para Atribuição Rápida (sem middleware CSRF)
 Route::get('/api/plantonistas-ativos', [PlantonisταController::class, 'apiAtivos'])
