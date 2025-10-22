@@ -79,11 +79,11 @@
 <body>
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="page-title h3 mb-0"><i class="bi bi-calendar3 me-1"></i> Calendário das Escalas Publicadas</h1>
-            <div class="d-flex gap-2">
-                <a href="{{ route('alocacoes.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-card-list"></i> Lista</a>
-                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-house"></i> Dashboard</a>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="page-title h3 mb-0"><i class="bi bi-calendar3 me-1"></i> Calendário das Escalas Publicadas</h1>
+                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-house"></i></a>
             </div>
+            <a href="{{ route('alocacoes.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-card-list"></i> Lista</a>
         </div>
 
         <div class="card card-shell mb-3">

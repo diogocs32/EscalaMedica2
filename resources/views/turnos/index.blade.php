@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turnos - Sistema de Escala Médica</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 
 <body>
@@ -13,7 +14,10 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h3">🕐 Gestão de Turnos</h1>
+                    <div class="d-flex align-items-center gap-2">
+                        <h1 class="h3 mb-0">🕐 Gestão de Turnos</h1>
+                        <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-house"></i></a>
+                    </div>
                     <a href="{{ route('turnos.create') }}" class="btn btn-primary">➕ Novo Turno</a>
                 </div>
 
@@ -97,12 +101,6 @@
                         </div>
                         @endif
                     </div>
-                </div>
-
-                <div class="mt-3">
-                    <a href="{{ url('/') }}" class="btn btn-secondary">🏠 Voltar ao Início</a>
-                    <a href="{{ route('setores.index') }}" class="btn btn-outline-primary">📋 Setores</a>
-                    <a href="{{ route('alocacoes.index') }}" class="btn btn-outline-success">📅 Alocações</a>
                 </div>
             </div>
         </div>

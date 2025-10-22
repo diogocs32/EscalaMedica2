@@ -229,13 +229,16 @@
 <body>
     <div class="container-fluid py-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="page-title h3 mb-0">
-                <i class="bi bi-calendar3 me-1"></i>
-                Planilha da Escala Padrão — {{ $unidade->nome }}
-            </h1>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="page-title h3 mb-0">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    Planilha da Escala Padrão — {{ $unidade->nome }}
+                </h1>
+                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-house"></i></a>
+            </div>
             <div class="toolbar d-flex gap-2">
                 <a href="{{ route('schedule-patterns') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-left"></i> Voltar
+                    <i class="bi bi-card-list"></i> Resumo
                 </a>
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalClonarDiaLote">
                     <i class="bi bi-copy"></i> Clonar Dia

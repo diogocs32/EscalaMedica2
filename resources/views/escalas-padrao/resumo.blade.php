@@ -118,8 +118,10 @@
         @endif
 
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="page-title h3 mb-0"><i class="bi bi-diagram-3 me-1"></i> Padrões de Escala</h1>
-            <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar</a>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="page-title h3 mb-0"><i class="bi bi-diagram-3 me-1"></i> Padrões de Escala</h1>
+                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-house"></i></a>
+            </div>
         </div>
 
         <div class="card filter-card mb-4">
