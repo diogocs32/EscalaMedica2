@@ -854,6 +854,89 @@ class EscalaPadraoController extends Controller
     }
 
     /**
+     * Publicar escala: gera escala mensal com base no padrão de 5 semanas
+     * Mapeia cada semana do mês para uma das 5 semanas do ciclo
+     */
+    public function publicar(Request $request, Unidade $unidade)
+    {
+        $request->validate([
+            'periodo' => 'required|date_format:Y-m',
+        ]);
+
+        [$ano, $mes] = explode('-', $request->periodo);
+
+        // Buscar escala padrão ativa
+        $escalaPadrao = $unidade->escalaPadrao()->where('status', 'ativo')->first();
+
+        if (!$escalaPadrao) {
+            return redirect()->back()->with('error', 'Esta unidade não possui escala padrão ativa.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Criar registro de escala publicada (tabela será criada)
+            $escalaPublicada = \App\Models\EscalaPublicada::create([
+                'unidade_id' => $unidade->id,
+                'escala_padrao_id' => $escalaPadrao->id,
+                'ano' => $ano,
+                'mes' => $mes,
+                'status' => 'em_edicao',
+            ]);
+
+            // Processar cada dia do mês
+            $diasNoMes = cal_days_in_month(CAL_GREGORIAN, (int)$mes, (int)$ano);
+            $vigenciaInicio = \Carbon\Carbon::parse($escalaPadrao->vigencia_inicio);
+
+            for ($dia = 1; $dia <= $diasNoMes; $dia++) {
+                $dataAtual = \Carbon\Carbon::create($ano, $mes, $dia);
+
+                // Calcular qual semana do ciclo (1-5)
+                $diasDesdeVigencia = $vigenciaInicio->diffInDays($dataAtual);
+                $numeroDaSemana = (int)(floor($diasDesdeVigencia / 7) % 5) + 1;
+
+                // Nome do dia da semana (segunda, terca, etc)
+                $nomeDiaSemana = $this->getNomeDiaSemana($dataAtual->dayOfWeek);
+
+                // Buscar configurações do dia correspondente no template
+                $diaTemplate = DiaTemplate::whereHas('semanaTemplate', function ($q) use ($escalaPadrao, $numeroDaSemana) {
+                    $q->where('escala_padrao_id', $escalaPadrao->id)
+                        ->where('numero_semana', $numeroDaSemana);
+                })
+                    ->where('dia_semana', $nomeDiaSemana)
+                    ->with('configuracoes.turno', 'configuracoes.setor')
+                    ->first();
+
+                if (!$diaTemplate) continue;
+
+                // Copiar configurações para a escala publicada
+                foreach ($diaTemplate->configuracoes as $config) {
+                    for ($slot = 1; $slot <= $config->quantidade_necessaria; $slot++) {
+                        \App\Models\AlocacaoPublicada::create([
+                            'escala_publicada_id' => $escalaPublicada->id,
+                            'data' => $dataAtual->format('Y-m-d'),
+                            'turno_id' => $config->turno_id,
+                            'setor_id' => $config->setor_id,
+                            'plantonista_id' => null, // Vazio, será preenchido manualmente
+                            'status' => 'vago',
+                            'observacoes' => $config->observacoes,
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('alocacoes.index')
+                ->with('success', "Escala publicada com sucesso para {$mes}/{$ano}!");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Erro ao publicar escala: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Mapear nome do dia para número (domingo=1, segunda=2, ..., sabado=7)
      */
     private function mapearDiaParaNumero($dia)
@@ -868,5 +951,22 @@ class EscalaPadraoController extends Controller
             'sabado' => 7,
         ];
         return $mapa[$dia] ?? 1;
+    }
+
+    /**
+     * Obter nome do dia da semana (0=domingo, 6=sábado)
+     */
+    private function getNomeDiaSemana($dayOfWeek)
+    {
+        $dias = [
+            0 => 'domingo',
+            1 => 'segunda',
+            2 => 'terca',
+            3 => 'quarta',
+            4 => 'quinta',
+            5 => 'sexta',
+            6 => 'sabado',
+        ];
+        return $dias[$dayOfWeek] ?? 'segunda';
     }
 }

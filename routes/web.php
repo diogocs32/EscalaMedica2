@@ -79,6 +79,7 @@ Route::post('/unidades/{unidade}/escala-padrao/{semana}/{dia}/configuracao', [Es
 Route::delete('/unidades/{unidade}/escala-padrao/configuracao/{configuracao}', [EscalaPadraoController::class, 'destroyConfiguracao'])->name('escalas-padrao.destroy-configuracao');
 Route::post('/unidades/{unidade}/escala-padrao/{semana}/{dia}/copiar', [EscalaPadraoController::class, 'copiarDia'])->name('escalas-padrao.copiar-dia');
 Route::put('/unidades/{unidade}/escala-padrao/configuracao/{configuracao}', [EscalaPadraoController::class, 'updateConfiguracao'])->name('escalas-padrao.update-configuracao');
+Route::post('/escalas-padrao/{unidade}/publicar', [EscalaPadraoController::class, 'publicar'])->name('escalas-padrao.publicar');
 
 // Rotas para Alocações
 Route::resource('alocacoes', AlocacaoController::class);

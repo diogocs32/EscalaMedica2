@@ -17,11 +17,26 @@ class AlocacaoController extends Controller
      */
     public function index()
     {
-        $alocacoes = Alocacao::with(['plantonista', 'vaga.unidade', 'vaga.setor', 'vaga.turno'])
-            ->orderBy('data_plantao', 'desc')
-            ->paginate(15);
+        $escalasPublicadas = \App\Models\EscalaPublicada::with(['unidade.cidade', 'alocacoes'])
+            ->orderBy('ano', 'desc')
+            ->orderBy('mes', 'desc')
+            ->get()
+            ->map(function ($escala) {
+                return [
+                    'id' => $escala->id,
+                    'cidade' => $escala->unidade->cidade->nome ?? 'N/A',
+                    'estado' => $escala->unidade->cidade->estado ?? 'N/A',
+                    'unidade' => $escala->unidade->nome,
+                    'mes' => $escala->ano . '-' . $escala->mes,
+                    'total_slots' => $escala->total_slots,
+                    'preenchidos' => $escala->preenchidos,
+                    'buracos' => $escala->buracos,
+                    'taxa' => $escala->taxa,
+                    'status' => $escala->status,
+                ];
+            });
 
-        return view('alocacoes.index', compact('alocacoes'));
+        return view('alocacoes.index', compact('escalasPublicadas'));
     }
 
     /**

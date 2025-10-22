@@ -170,9 +170,11 @@
                                 <i class="bi bi-plus-circle"></i> Criar Escala
                             </a>
                             @endif
-                            <button class="btn btn-sm btn-outline-success w-100" disabled title="Em breve">
-                                <i class="bi bi-lightning-charge"></i> Atribuição Rápida
+                            @if($item['escala'])
+                            <button class="btn btn-sm btn-success w-100" onclick="publicarEscala({{ $item['unidade']->id }})">
+                                <i class="bi bi-calendar-check"></i> Publicar
                             </button>
+                            @endif
                             <a href="{{ route('unidades.show', $item['unidade']) }}" class="btn btn-sm btn-outline-secondary w-100">
                                 <i class="bi bi-hospital"></i> Unidade
                             </a>
@@ -184,7 +186,107 @@
         </div>
     </div>
 
+    <!-- Modal de Publicação -->
+    <div class="modal fade" id="modalPublicar" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-calendar-check"></i> Publicar Escala</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">Selecione o período para gerar a escala com base no padrão de 5 semanas:</p>
+
+                    <form id="formPublicar" method="POST">
+                        @csrf
+                        <input type="hidden" id="unidade_id_publicar" name="unidade_id">
+
+                        <div class="mb-3">
+                            <label for="ano_publicar" class="form-label">Ano</label>
+                            <select class="form-select" id="ano_publicar" name="ano" required>
+                                <option value="">Selecione o ano</option>
+                                @php
+                                $anoAtual = date('Y');
+                                for ($ano = $anoAtual; $ano <= $anoAtual + 2; $ano++) {
+                                    echo "<option value='$ano'>$ano</option>" ;
+                                    }
+                                    @endphp
+                                    </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="mes_publicar" class="form-label">Mês</label>
+                            <select class="form-select" id="mes_publicar" name="mes" required>
+                                <option value="">Selecione o mês</option>
+                                <option value="01">Janeiro</option>
+                                <option value="02">Fevereiro</option>
+                                <option value="03">Março</option>
+                                <option value="04">Abril</option>
+                                <option value="05">Maio</option>
+                                <option value="06">Junho</option>
+                                <option value="07">Julho</option>
+                                <option value="08">Agosto</option>
+                                <option value="09">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <small>
+                                <strong>Como funciona:</strong><br>
+                                • O sistema vai mapear cada semana do mês escolhido para uma das 5 semanas do padrão<br>
+                                • Cada dia receberá as configurações (turnos/setores) do dia da semana correspondente<br>
+                                • Exemplo: 02/10/2025 (quarta-feira) = configurações da quarta da semana 1
+                            </small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="confirmarPublicacao()">
+                        <i class="bi bi-check-lg"></i> Publicar Escala
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let modalPublicar;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            modalPublicar = new bootstrap.Modal(document.getElementById('modalPublicar'));
+        });
+
+        function publicarEscala(unidadeId) {
+            document.getElementById('unidade_id_publicar').value = unidadeId;
+            document.getElementById('formPublicar').reset();
+            document.getElementById('unidade_id_publicar').value = unidadeId;
+
+            // Pré-selecionar ano atual
+            document.getElementById('ano_publicar').value = new Date().getFullYear();
+
+            modalPublicar.show();
+        }
+
+        function confirmarPublicacao() {
+            const ano = document.getElementById('ano_publicar').value;
+            const mes = document.getElementById('mes_publicar').value;
+            const unidadeId = document.getElementById('unidade_id_publicar').value;
+
+            if (!ano || !mes) {
+                alert('Por favor, selecione o ano e o mês.');
+                return;
+            }
+
+            // Redirecionar para rota de publicação
+            const periodo = `${ano}-${mes}`;
+            window.location.href = `/EscalaMedica2/public/escalas-padrao/${unidadeId}/publicar?periodo=${periodo}`;
+        }
+    </script>
 </body>
 
 </html>
