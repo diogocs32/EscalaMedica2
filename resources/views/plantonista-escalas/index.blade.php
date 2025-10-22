@@ -223,58 +223,63 @@
                         </div>
 
                         @php
-                        // Ordenar por semana, dia e hora de início do turno (sem closures para evitar comparador inválido)
-                        $alocsOrdenadas = $alocacoes->sortBy([
-                        ['semana', 'asc'],
-                        ['dia', 'asc'],
-                        ['turno.hora_inicio', 'asc'],
-                        ]);
+                        // Resumo: agrupar por (dia, turno, setor) e consolidar semanas
+                        $grupos = $alocacoes->groupBy(function($a){
+                        return ($a->dia ?? 0) . '|' . ($a->turno_id ?? 0) . '|' . ($a->setor_id ?? 0);
+                        });
+
+                        $resumo = $grupos->map(function($colecao){
+                        $primeiro = $colecao->first();
+                        $dia = $primeiro->dia ?? null;
+                        $turno = $primeiro->turno ?? null;
+                        $setor = $primeiro->setor ?? null;
+                        $semanas = $colecao->pluck('semana')->filter()->unique()->sort()->values()->all();
+
+                        $diaNomes = [1=>'Segundas-feiras',2=>'Terças-feiras',3=>'Quartas-feiras',4=>'Quintas-feiras',5=>'Sextas-feiras',6=>'Sábados',7=>'Domingos'];
+                        $diaTexto = $diaNomes[$dia] ?? 'Dia';
+
+                        $horaIni = $turno ? \Carbon\Carbon::parse($turno->hora_inicio)->format('H:i') : '--:--';
+                        $horaFim = $turno ? \Carbon\Carbon::parse($turno->hora_fim)->format('H:i') : '--:--';
+
+                        return [
+                        'dia' => $dia,
+                        'dia_texto' => $diaTexto,
+                        'turno_nome' => $turno->nome ?? 'Turno N/A',
+                        'hora_inicio' => $horaIni,
+                        'hora_fim' => $horaFim,
+                        'setor_nome' => $setor->nome ?? null,
+                        'semanas' => $semanas,
+                        ];
+                        })->sortBy([
+                        ['dia','asc'],
+                        ['hora_inicio','asc'],
+                        ['setor_nome','asc'],
+                        ])->values();
                         @endphp
 
-                        @foreach($alocsOrdenadas as $aloc)
-                        @php
-                        $diaSemana = [
-                        1 => 'Segunda-feira',
-                        2 => 'Terça-feira',
-                        3 => 'Quarta-feira',
-                        4 => 'Quinta-feira',
-                        5 => 'Sexta-feira',
-                        6 => 'Sábado',
-                        7 => 'Domingo'
-                        ][$aloc->dia] ?? "Dia {$aloc->dia}";
-
-                        // Se semana > 1, adicionar ordinal
-                        $diaTexto = $diaSemana;
-                        if ($aloc->semana > 1) {
-                        $ordinal = ['1º', '2º', '3º', '4º', '5º'][$aloc->semana - 1] ?? "{$aloc->semana}º";
-                        // Para finais de semana, exibir formato "2º Sábado"
-                        if (in_array($aloc->dia, [6, 7])) {
-                        $diaTexto = $ordinal . ' ' . $diaSemana;
-                        } else {
-                        // Para dias úteis, manter só o dia
-                        $diaTexto = $diaSemana . " (sem. {$aloc->semana})";
-                        }
-                        }
-
-                        $horarioInicio = $aloc->turno ? \Carbon\Carbon::parse($aloc->turno->hora_inicio)->format('H:i') : '--:--';
-                        $horarioFim = $aloc->turno ? \Carbon\Carbon::parse($aloc->turno->hora_fim)->format('H:i') : '--:--';
-                        @endphp
-
+                        @foreach($resumo as $item)
                         <div class="alocacao-item">
                             <div class="dia-badge">
-                                <i class="bi bi-calendar-event"></i> {{ $diaTexto }}
+                                <i class="bi bi-calendar-event"></i> {{ $item['dia_texto'] }}
                             </div>
                             <div class="turno-badge">
-                                <i class="bi bi-clock"></i> {{ $aloc->turno->nome ?? 'Turno N/A' }}
+                                <i class="bi bi-clock"></i> {{ $item['turno_nome'] }}
                             </div>
                             <div class="horario-badge">
-                                {{ $horarioInicio }} às {{ $horarioFim }}
+                                {{ $item['hora_inicio'] }} às {{ $item['hora_fim'] }}
                             </div>
-                            @if($aloc->setor)
+                            @if(!empty($item['setor_nome']))
                             <div class="setor-badge">
-                                {{ $aloc->setor->nome }}
+                                {{ $item['setor_nome'] }}
                             </div>
                             @endif
+                            @php
+                            // Exibir semanas somente se não forem todas (1..5). Se forem todas, omitir para ficar mais limpo.
+                            $todasSemanas = $item['semanas'] === [1,2,3,4,5];
+                            @endphp
+                            @unless($todasSemanas)
+                            <span class="ms-auto text-muted small">sem. {{ implode(',', $item['semanas']) }}</span>
+                            @endunless
                         </div>
                         @endforeach
                     </div>
