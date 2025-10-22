@@ -953,15 +953,11 @@ class EscalaPadraoController extends Controller
             for ($dia = 1; $dia <= $diasNoMes; $dia++) {
                 $dataAtual = \Carbon\Carbon::create($ano, $mes, $dia)->startOfDay();
 
-                // Calcular qual semana do ciclo (1-5)
-                // Suporta datas ANTES e DEPOIS da vigência
-                $diasDesdeVigencia = $dataAtual->diffInDays($vigenciaInicio, false); // false = signed diff
-                $numeroDaSemana = (int)(floor($diasDesdeVigencia / 7) % 5) + 1;
+                // Calcular semana do mês: blocos de 7 dias (1-7, 8-14, 15-21, 22-28, 29-31)
+                $semanaMes = (int) ceil($dia / 7);
 
-                // Garantir que o número da semana esteja entre 1 e 5
-                if ($numeroDaSemana <= 0) {
-                    $numeroDaSemana = 5 + ($numeroDaSemana % 5);
-                }
+                // Calcular qual semana do ciclo de 5 semanas (1-5)
+                $numeroDaSemana = (($semanaMes - 1) % 5) + 1;
 
                 // Nome do dia da semana (segunda, terca, etc)
                 $nomeDiaSemana = $this->getNomeDiaSemana($dataAtual->dayOfWeek);

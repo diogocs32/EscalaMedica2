@@ -167,10 +167,7 @@
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3 px-3">
                         <div class="d-flex gap-2">
-                            <a href="#" class="btn btn-sm btn-outline-primary w-100" onclick="alert('Funcionalidade em desenvolvimento'); return false;">
-                                <i class="bi bi-eye"></i> Ver
-                            </a>
-                            <a href="#" class="btn btn-sm btn-outline-warning w-100" onclick="alert('Funcionalidade em desenvolvimento'); return false;">
+                            <a href="{{ route('escalas-publicadas.edit', $escala['id']) }}" class="btn btn-sm btn-outline-warning w-100">
                                 <i class="bi bi-pencil"></i> Editar
                             </a>
                         </div>

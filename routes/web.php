@@ -9,6 +9,7 @@ use App\Http\Controllers\TurnoController;
 use App\Http\Controllers\AlocacaoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EscalaPadraoController;
+use App\Http\Controllers\EscalaPublicadaController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -83,6 +84,12 @@ Route::post('/escalas-padrao/{unidade}/publicar', [EscalaPadraoController::class
 
 // Rotas para Alocações
 Route::resource('alocacoes', AlocacaoController::class);
+
+// Escalas Publicadas - Edição mensal por dia do mês
+Route::get('/escalas-publicadas/{escalaPublicada}/edit', [EscalaPublicadaController::class, 'edit'])
+    ->name('escalas-publicadas.edit');
+Route::put('/escalas-publicadas/alocacoes/{alocacaoPublicada}', [EscalaPublicadaController::class, 'updateAlocacao'])
+    ->name('escalas-publicadas.alocacoes.update');
 
 // API para Atribuição Rápida (sem middleware CSRF)
 Route::get('/api/plantonistas-ativos', [PlantonisταController::class, 'apiAtivos'])
