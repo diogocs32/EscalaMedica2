@@ -118,49 +118,6 @@
         </div>
         @endif
 
-        {{-- TODO: Substituir pelos dados reais quando o backend estiver pronto --}}
-        @php
-        // Dados de exemplo - serão substituídos pelo controller
-        $escalasPublicadas = [
-        [
-        'id' => 1,
-        'cidade' => 'São Paulo',
-        'estado' => 'SP',
-        'unidade' => 'Hospital Central',
-        'mes' => '2025-11',
-        'total_slots' => 420,
-        'preenchidos' => 350,
-        'buracos' => 70,
-        'taxa' => 83,
-        'status' => 'publicado'
-        ],
-        [
-        'id' => 2,
-        'cidade' => 'Rio de Janeiro',
-        'estado' => 'RJ',
-        'unidade' => 'UPA Norte',
-        'mes' => '2025-11',
-        'total_slots' => 280,
-        'preenchidos' => 190,
-        'buracos' => 90,
-        'taxa' => 68,
-        'status' => 'em_edicao'
-        ],
-        [
-        'id' => 3,
-        'cidade' => 'Belo Horizonte',
-        'estado' => 'MG',
-        'unidade' => 'Clínica da Família',
-        'mes' => '2025-12',
-        'total_slots' => 210,
-        'preenchidos' => 180,
-        'buracos' => 30,
-        'taxa' => 86,
-        'status' => 'publicado'
-        ],
-        ];
-        @endphp
-
         @if(empty($escalasPublicadas))
         <div class="alert alert-info">Nenhuma escala publicada encontrada.</div>
         @else

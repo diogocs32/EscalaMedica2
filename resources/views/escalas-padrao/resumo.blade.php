@@ -282,9 +282,13 @@
                 return;
             }
 
-            // Redirecionar para rota de publicação
+            // Construir período e URL de ação
             const periodo = `${ano}-${mes}`;
-            window.location.href = `/EscalaMedica2/public/escalas-padrao/${unidadeId}/publicar?periodo=${periodo}`;
+            const form = document.getElementById('formPublicar');
+            form.action = `/EscalaMedica2/public/escalas-padrao/${unidadeId}/publicar?periodo=${periodo}`;
+
+            // Submeter formulário via POST
+            form.submit();
         }
     </script>
 </body>
