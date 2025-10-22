@@ -493,6 +493,68 @@ class EscalaPadraoController extends Controller
             ];
 
             if ($validated['plantonista_id']) {
+                // VALIDAÇÃO: Verificar conflito de horário antes de alocar
+                $turnoNovo = \App\Models\Turno::find($validated['turno_id']);
+
+                if (!$turnoNovo) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Turno não encontrado',
+                    ], 404);
+                }
+
+                // Buscar todas as alocações do plantonista na mesma semana e dia
+                $alocacoesExistentes = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)
+                    ->where('semana', $validated['semana'])
+                    ->where('dia', $validated['dia'])
+                    ->where('plantonista_id', $validated['plantonista_id'])
+                    ->with('turno')
+                    ->get();
+
+                // Verificar sobreposição de horários
+                foreach ($alocacoesExistentes as $alocExistente) {
+                    // Ignorar se for o mesmo slot que estamos atualizando
+                    if (
+                        $alocExistente->turno_id == $validated['turno_id'] &&
+                        $alocExistente->setor_id == $validated['setor_id'] &&
+                        $alocExistente->slot == $validated['slot']
+                    ) {
+                        continue;
+                    }
+
+                    $turnoExistente = $alocExistente->turno;
+
+                    if (!$turnoExistente || !$turnoExistente->hora_inicio || !$turnoExistente->hora_fim) {
+                        continue;
+                    }
+
+                    // Verificar sobreposição de horários
+                    $inicioNovo = strtotime($turnoNovo->hora_inicio);
+                    $fimNovo = strtotime($turnoNovo->hora_fim);
+                    $inicioExistente = strtotime($turnoExistente->hora_inicio);
+                    $fimExistente = strtotime($turnoExistente->hora_fim);
+
+                    // Ajustar para turnos que cruzam meia-noite (Corujão)
+                    if ($fimNovo < $inicioNovo) {
+                        $fimNovo += 86400; // +24 horas
+                    }
+                    if ($fimExistente < $inicioExistente) {
+                        $fimExistente += 86400; // +24 horas
+                    }
+
+                    // Lógica de sobreposição: (início1 < fim2) E (início2 < fim1)
+                    $haConflito = ($inicioNovo < $fimExistente) && ($inicioExistente < $fimNovo);
+
+                    if ($haConflito) {
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'message' => "Conflito de horário: o plantonista já está alocado no turno {$turnoExistente->nome} ({$turnoExistente->hora_inicio}-{$turnoExistente->hora_fim}) no setor {$alocExistente->setor->nome}",
+                        ], 422);
+                    }
+                }
+
                 // Alocar ou atualizar
                 \App\Models\AlocacaoTemplate::updateOrCreate(
                     $conditions,
