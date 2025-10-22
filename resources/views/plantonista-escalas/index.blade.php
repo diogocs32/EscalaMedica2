@@ -223,11 +223,11 @@
                         </div>
 
                         @php
-                        // Agrupar por semana + dia para ordenar cronologicamente
+                        // Ordenar por semana, dia e hora de início do turno (sem closures para evitar comparador inválido)
                         $alocsOrdenadas = $alocacoes->sortBy([
                         ['semana', 'asc'],
                         ['dia', 'asc'],
-                        function($a) { return $a->turno->hora_inicio ?? '00:00:00'; }
+                        ['turno.hora_inicio', 'asc'],
                         ]);
                         @endphp
 
