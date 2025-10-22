@@ -139,8 +139,11 @@ class EscalaPublicadaController extends Controller
             // Turno atual (novo)
             $turnoNovo = \App\Models\Turno::find($alocacaoPublicada->turno_id);
             if ($turnoNovo && $turnoNovo->hora_inicio && $turnoNovo->hora_fim) {
-                $inicioNovo = Carbon::parse($dataDia->format('Y-m-d') . ' ' . $turnoNovo->hora_inicio);
-                $fimNovo = Carbon::parse($dataDia->format('Y-m-d') . ' ' . $turnoNovo->hora_fim);
+                // Normalizar para apenas hora (HH:MM:SS), evitando "dupla data"
+                $horaInicioNovo = Carbon::parse($turnoNovo->hora_inicio)->format('H:i:s');
+                $horaFimNovo = Carbon::parse($turnoNovo->hora_fim)->format('H:i:s');
+                $inicioNovo = Carbon::parse($dataDia->format('Y-m-d') . ' ' . $horaInicioNovo);
+                $fimNovo = Carbon::parse($dataDia->format('Y-m-d') . ' ' . $horaFimNovo);
                 // Corujão (atravessa meia-noite)
                 if ($fimNovo->lessThanOrEqualTo($inicioNovo)) {
                     $fimNovo->addDay();
@@ -161,8 +164,11 @@ class EscalaPublicadaController extends Controller
                         continue;
                     }
 
-                    $inicioExist = Carbon::parse($dataDia->format('Y-m-d') . ' ' . $turnoExistente->hora_inicio);
-                    $fimExist = Carbon::parse($dataDia->format('Y-m-d') . ' ' . $turnoExistente->hora_fim);
+                    // Normalizar horas existentes
+                    $horaInicioExist = Carbon::parse($turnoExistente->hora_inicio)->format('H:i:s');
+                    $horaFimExist = Carbon::parse($turnoExistente->hora_fim)->format('H:i:s');
+                    $inicioExist = Carbon::parse($dataDia->format('Y-m-d') . ' ' . $horaInicioExist);
+                    $fimExist = Carbon::parse($dataDia->format('Y-m-d') . ' ' . $horaFimExist);
                     if ($fimExist->lessThanOrEqualTo($inicioExist)) {
                         $fimExist->addDay();
                     }
