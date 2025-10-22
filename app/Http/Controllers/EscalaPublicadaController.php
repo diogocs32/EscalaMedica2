@@ -33,10 +33,14 @@ class EscalaPublicadaController extends Controller
         $setores = \App\Models\Setor::orderBy('id')->get();
 
         // Criar mapa de alocações: [data][turno_id][setor_id][] => array de alocações
+        // E também identificar quais combinações turno×setor possuem ao menos 1 slot no mês
         $mapaAlocacoes = [];
+        $combAtivas = [];
         foreach ($escalaPublicada->alocacoes as $aloc) {
+            if (!$aloc->turno_id || !$aloc->setor_id) continue;
             $key = Carbon::parse($aloc->data)->format('Y-m-d');
             $mapaAlocacoes[$key][$aloc->turno_id][$aloc->setor_id][] = $aloc;
+            $combAtivas[$aloc->turno_id][$aloc->setor_id] = true;
         }
 
         // Construir linhas: dia do mês + semana do ciclo + slots
@@ -73,6 +77,17 @@ class EscalaPublicadaController extends Controller
             ->orderBy('nome')
             ->get();
 
+        // Construir lista de setores ativos por turno e turnos ativos (para esconder colunas vazias no mês)
+        $setoresAtivosPorTurno = [];
+        foreach ($turnos as $t) {
+            foreach ($setores as $s) {
+                if (!empty($combAtivas[$t->id][$s->id])) {
+                    $setoresAtivosPorTurno[$t->id][] = $s;
+                }
+            }
+        }
+        $turnosAtivos = $turnos->filter(fn($t) => !empty($setoresAtivosPorTurno[$t->id] ?? []))->values();
+
         // Mapear ocupações por dia e plantonista para desabilitar opções com conflito no select
         // Formato: [YYYY-mm-dd][plantonista_id] => [ ['inicio'=>'HH:MM:SS','fim'=>'HH:MM:SS','alocacao_id'=>int,'turno_id'=>int,'setor_id'=>int], ... ]
         $ocupacaoPorDia = [];
@@ -98,7 +113,9 @@ class EscalaPublicadaController extends Controller
             'turnos',
             'setores',
             'plantonistas',
-            'ocupacaoPorDia'
+            'ocupacaoPorDia',
+            'setoresAtivosPorTurno',
+            'turnosAtivos'
         ));
     }
 

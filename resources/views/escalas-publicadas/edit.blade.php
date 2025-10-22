@@ -149,8 +149,9 @@
                                 <th rowspan="2" style="width: 80px; vertical-align: middle;">Week</th>
                                 <th rowspan="2" style="width: 60px; vertical-align: middle;">Day</th>
                                 <th rowspan="2" style="width: 120px; vertical-align: middle;">Dia da Semana</th>
-                                @foreach($turnos as $turno)
-                                <th colspan="{{ $setores->count() }}" class="turno-header">
+                                @foreach($turnosAtivos as $turno)
+                                @php $colspan = isset($setoresAtivosPorTurno[$turno->id]) ? count($setoresAtivosPorTurno[$turno->id]) : 0; @endphp
+                                <th colspan="{{ $colspan }}" class="turno-header">
                                     {{ ucfirst($turno->nome) }}
                                     <br>
                                     <small style="font-weight: 400; font-size: 0.75rem;">
@@ -160,8 +161,8 @@
                                 @endforeach
                             </tr>
                             <tr>
-                                @foreach($turnos as $turno)
-                                @foreach($setores as $setor)
+                                @foreach($turnosAtivos as $turno)
+                                @foreach(($setoresAtivosPorTurno[$turno->id] ?? []) as $setor)
                                 <th class="setor-subheader">{{ ucfirst($setor->nome) }}</th>
                                 @endforeach
                                 @endforeach
@@ -173,8 +174,8 @@
                                 <td class="text-center fw-semibold">Semana {{ $row['semana'] }}</td>
                                 <td class="text-center">{{ $row['dia'] }}</td>
                                 <td>{{ ucfirst($row['weekday']) }}</td>
-                                @foreach($turnos as $turno)
-                                @foreach($setores as $setor)
+                                @foreach($turnosAtivos as $turno)
+                                @foreach(($setoresAtivosPorTurno[$turno->id] ?? []) as $setor)
                                 @php
                                 $slots = $row['slots'][$turno->id][$setor->id] ?? [];
                                 @endphp
