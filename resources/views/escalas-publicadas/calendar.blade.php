@@ -45,14 +45,16 @@
             font-size: .75rem;
         }
 
-        /* Melhorar legibilidade dos eventos (quebra de linha e tamanhos) */
+        /* Compactar eventos no mês (2 linhas: nome + setor-turno) */
         .fc .fc-event-title,
         .fc .fc-event-time {
             white-space: normal;
         }
 
         .fc .fc-daygrid-event {
-            padding: .15rem .25rem;
+            padding: .1rem .2rem;
+            font-size: .7rem;
+            line-height: 1.15;
         }
 
         .fc .fc-timegrid-event {
@@ -60,12 +62,16 @@
         }
 
         .fc .fc-event .small {
-            font-size: .78rem;
-            line-height: 1.1;
+            font-size: .68rem;
+            line-height: 1.05;
         }
 
         .fc .fc-event .muted {
-            opacity: .85;
+            opacity: .75;
+        }
+
+        .fc .fc-daygrid-day-events {
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -127,7 +133,7 @@
             const applyBtn = document.getElementById('applyFilters');
 
             const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek',
+                initialView: 'dayGridMonth',
                 height: 'auto',
                 locale: 'pt-br',
                 timeZone: 'local',
@@ -140,8 +146,7 @@
                 selectable: false,
                 editable: false,
                 expandRows: true,
-                dayMaxEventRows: 4,
-                moreLinkClick: 'popover',
+                dayMaxEventRows: false,
                 displayEventEnd: true,
                 eventDisplay: 'block',
                 eventTimeFormat: {
@@ -165,15 +170,13 @@
                         .catch(err => failureCallback(err));
                 },
                 eventContent: function(arg) {
-                    // Construir conteúdo mais legível (3 linhas): Nome, Setor/Turno, Horário
+                    // Compactar em 2 linhas: Nome + Setor-Turno
                     const p = arg.event.extendedProps || {};
                     const nome = (arg.event.title || '').split(' • ')[0] || (p.plantonista || 'Vago');
-                    const setorTurno = [p.setor, p.turno].filter(Boolean).join(' • ');
-                    const horario = arg.timeText || '';
+                    const setorTurno = [p.setor, p.turno].filter(Boolean).join(' - ');
                     const html = `
                         <div class="fc-event-title fw-semibold">${nome}</div>
-                        ${setorTurno ? `<div class="small">${setorTurno}</div>` : ''}
-                        ${horario ? `<div class="small muted">${horario}</div>` : ''}
+                        ${setorTurno ? `<div class="small muted">${setorTurno}</div>` : ''}
                     `;
                     return {
                         html
