@@ -188,4 +188,106 @@ class EscalaPublicadaController extends Controller
 
         return back()->with('success', 'Alocação atualizada com sucesso.');
     }
+
+    /**
+     * Página de calendário (consulta) para visualizar todas as alocações publicadas.
+     */
+    public function calendar(Request $request)
+    {
+        // Poderemos futuramente passar filtros (unidade, plantonista). Por ora, somente renderiza a view.
+        $unidades = \App\Models\Unidade::orderBy('nome')->get(['id', 'nome']);
+        $plantonistas = \App\Models\Plantonista::orderBy('nome')->get(['id', 'nome']);
+
+        return view('escalas-publicadas.calendar', compact('unidades', 'plantonistas'));
+    }
+
+    /**
+     * Endpoint JSON para FullCalendar: retorna eventos entre start e end.
+     */
+    public function events(Request $request)
+    {
+        $start = $request->query('start');
+        $end = $request->query('end');
+
+        if (!$start || !$end) {
+            return response()->json([]);
+        }
+
+        $inicio = Carbon::parse($start)->startOfDay();
+        $fim = Carbon::parse($end)->endOfDay();
+
+        // Filtros opcionais
+        $unidadeId = $request->query('unidade_id');
+        $plantonistaId = $request->query('plantonista_id');
+
+        $query = AlocacaoPublicada::query()
+            ->whereBetween('data', [$inicio->toDateString(), $fim->toDateString()])
+            ->with(['escalaPublicada.unidade.cidade', 'turno', 'setor', 'plantonista']);
+
+        if ($unidadeId) {
+            $query->whereHas('escalaPublicada', function ($q) use ($unidadeId) {
+                $q->where('unidade_id', $unidadeId);
+            });
+        }
+        if ($plantonistaId) {
+            $query->where('plantonista_id', $plantonistaId);
+        }
+
+        $alocacoes = $query->get();
+
+        $events = $alocacoes->map(function ($a) {
+            $turno = $a->turno;
+            $setor = $a->setor;
+            $unidade = optional($a->escalaPublicada)->unidade;
+            $cidade = optional($unidade)->cidade;
+            $plantonista = $a->plantonista;
+
+            // Normalizar horários
+            $dataBase = Carbon::parse($a->data)->format('Y-m-d');
+            $hInicio = $turno && $turno->hora_inicio ? Carbon::parse($turno->hora_inicio)->format('H:i:s') : '00:00:00';
+            $hFim = $turno && $turno->hora_fim ? Carbon::parse($turno->hora_fim)->format('H:i:s') : '23:59:59';
+            $inicio = Carbon::parse($dataBase . ' ' . $hInicio);
+            $fim = Carbon::parse($dataBase . ' ' . $hFim);
+            if ($fim->lessThanOrEqualTo($inicio)) {
+                $fim->addDay(); // corujão
+            }
+
+            // Título amigável
+            $titleParts = [];
+            $titleParts[] = $plantonista?->nome ?? 'Vago';
+            if ($setor?->nome) $titleParts[] = $setor->nome;
+            if ($turno?->nome) $titleParts[] = $turno->nome;
+            $title = implode(' • ', $titleParts);
+
+            // Cor por período do turno (opcional)
+            $periodo = strtolower((string)($turno->periodo ?? ''));
+            $bg = match ($periodo) {
+                'manhã', 'manha' => '#4dabf7',
+                'tarde' => '#51cf66',
+                'noite' => '#845ef7',
+                default => '#868e96',
+            };
+
+            return [
+                'id' => $a->id,
+                'title' => $title,
+                'start' => $inicio->toIso8601String(),
+                'end' => $fim->toIso8601String(),
+                'allDay' => false,
+                'backgroundColor' => $bg,
+                'borderColor' => $bg,
+                'textColor' => '#fff',
+                'extendedProps' => [
+                    'unidade' => $unidade?->nome,
+                    'cidade' => $cidade?->nome,
+                    'estado' => $cidade?->estado,
+                    'setor' => $setor?->nome,
+                    'turno' => $turno?->nome,
+                    'plantonista_id' => $plantonista?->id,
+                ],
+            ];
+        });
+
+        return response()->json($events);
+    }
 }

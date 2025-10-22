@@ -92,6 +92,14 @@ Route::get('/escalas-publicadas/{escalaPublicada}/edit', [EscalaPublicadaControl
 Route::put('/escalas-publicadas/alocacoes/{alocacaoPublicada}', [EscalaPublicadaController::class, 'updateAlocacao'])
     ->name('escalas-publicadas.alocacoes.update');
 
+// Escalas Publicadas - Calendário (consulta)
+Route::get('/escalas-publicadas/calendario', [EscalaPublicadaController::class, 'calendar'])
+    ->name('escalas-publicadas.calendar');
+// API de eventos para o calendário (FullCalendar)
+Route::get('/api/escalas-publicadas/events', [EscalaPublicadaController::class, 'events'])
+    ->name('api.escalas-publicadas.events')
+    ->middleware('api');
+
 // Escalas do Plantonista - Visualização consolidada
 Route::get('/escalas/plantonista', [PlantonistaEscalaController::class, 'index'])
     ->name('plantonista.escalas');
