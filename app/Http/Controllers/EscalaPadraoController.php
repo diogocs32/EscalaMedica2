@@ -926,6 +926,9 @@ class EscalaPadraoController extends Controller
                 // Nome do dia da semana (segunda, terca, etc)
                 $nomeDiaSemana = $this->getNomeDiaSemana($dataAtual->dayOfWeek);
 
+                // Número do dia da semana (1=domingo, 2=segunda, ..., 7=sábado)
+                $numeroDiaSemana = $dataAtual->dayOfWeek + 1; // Carbon: 0=domingo, 6=sábado -> Converter para 1-7
+
                 // Buscar configurações do dia correspondente no template
                 $diaTemplate = DiaTemplate::whereHas('semanaTemplate', function ($q) use ($escalaPadrao, $numeroDaSemana) {
                     $q->where('escala_padrao_id', $escalaPadrao->id)
@@ -938,41 +941,34 @@ class EscalaPadraoController extends Controller
                 if (!$diaTemplate) continue;
 
                 // Buscar alocações template (médicos já preenchidos no padrão)
+                // IMPORTANTE: Campo 'dia' na tabela alocacoes_template é INTEGER (1-7)
                 $alocacoesTemplate = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escalaPadrao->id)
                     ->where('semana', $numeroDaSemana)
-                    ->where('dia', $nomeDiaSemana)
-                    ->orderBy('turno_id')
-                    ->orderBy('setor_id')
-                    ->orderBy('slot')
-                    ->get();
+                    ->where('dia', $numeroDiaSemana)
+                    ->get()
+                    ->keyBy(function ($item) {
+                        // Criar chave única: turno-setor-slot
+                        return "{$item->turno_id}-{$item->setor_id}-{$item->slot}";
+                    });
 
-                // Se houver alocações template, cloná-las COM os plantonistas
-                if ($alocacoesTemplate->count() > 0) {
-                    foreach ($alocacoesTemplate as $alocTemplate) {
+                // SEMPRE processar baseado em ConfiguracaoTurnoSetor (define QUANTOS slots devem existir)
+                foreach ($diaTemplate->configuracoes as $config) {
+                    // Para cada slot necessário neste turno+setor
+                    for ($slot = 1; $slot <= $config->quantidade_necessaria; $slot++) {
+                        // Buscar se existe alocação template para este slot específico
+                        $chave = "{$config->turno_id}-{$config->setor_id}-{$slot}";
+                        $alocTemplate = $alocacoesTemplate->get($chave);
+
+                        // Criar alocação publicada
                         \App\Models\AlocacaoPublicada::create([
                             'escala_publicada_id' => $escalaPublicada->id,
                             'data' => $dataAtual->format('Y-m-d'),
-                            'turno_id' => $alocTemplate->turno_id,
-                            'setor_id' => $alocTemplate->setor_id,
-                            'plantonista_id' => $alocTemplate->plantonista_id, // ← CLONAR MÉDICO DO TEMPLATE
-                            'status' => $alocTemplate->plantonista_id ? 'preenchido' : 'vago',
-                            'observacoes' => null,
+                            'turno_id' => $config->turno_id,
+                            'setor_id' => $config->setor_id,
+                            'plantonista_id' => $alocTemplate ? $alocTemplate->plantonista_id : null,
+                            'status' => ($alocTemplate && $alocTemplate->plantonista_id) ? 'preenchido' : 'vago',
+                            'observacoes' => $config->observacoes,
                         ]);
-                    }
-                } else {
-                    // Fallback: Se não houver alocações template, criar slots vazios baseado nas configurações
-                    foreach ($diaTemplate->configuracoes as $config) {
-                        for ($slot = 1; $slot <= $config->quantidade_necessaria; $slot++) {
-                            \App\Models\AlocacaoPublicada::create([
-                                'escala_publicada_id' => $escalaPublicada->id,
-                                'data' => $dataAtual->format('Y-m-d'),
-                                'turno_id' => $config->turno_id,
-                                'setor_id' => $config->setor_id,
-                                'plantonista_id' => null,
-                                'status' => 'vago',
-                                'observacoes' => $config->observacoes,
-                            ]);
-                        }
                     }
                 }
             }
