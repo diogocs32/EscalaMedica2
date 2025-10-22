@@ -271,8 +271,9 @@ class EscalaPublicadaController extends Controller
             return [
                 'id' => $a->id,
                 'title' => $title,
-                'start' => $inicio->toIso8601String(),
-                'end' => $fim->toIso8601String(),
+                // Enviar horários sem timezone para evitar deslocamento no navegador
+                'start' => $inicio->format('Y-m-d\TH:i:s'),
+                'end' => $fim->format('Y-m-d\TH:i:s'),
                 'allDay' => false,
                 'backgroundColor' => $bg,
                 'borderColor' => $bg,
