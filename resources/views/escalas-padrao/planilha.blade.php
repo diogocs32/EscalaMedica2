@@ -161,8 +161,11 @@
         /* Buraco indisponível (conflito) – mantém vermelho, porém indica bloqueio */
         .badge-slot.buraco-indisponivel {
             cursor: not-allowed;
-            opacity: 0.6;
+            opacity: 1;
             border-style: dashed;
+            background: rgb(235 206 209 / 12%) !important;
+            color: #fbc6c6 !important;
+            border-color: rgba(220, 53, 69, .35);
         }
 
         /* Ocupado pelo plantonista atualmente selecionado – mesma paleta de "Preenchidos" */
