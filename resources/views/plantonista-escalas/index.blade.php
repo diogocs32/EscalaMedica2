@@ -112,6 +112,17 @@
             font-size: .85rem;
         }
 
+        .semanas-badge {
+            background: #e2e3e5;
+            /* cinza mais escuro para dar contraste */
+            color: #343a40;
+            padding: .25rem .5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: .8rem;
+            white-space: nowrap;
+        }
+
         .empty-state {
             text-align: center;
             padding: 3rem;
@@ -273,7 +284,11 @@
                                 {{ $item['setor_nome'] }}
                             </div>
                             @endif
-                            <span class="ms-auto text-muted small">sem. {{ implode(',', $item['semanas']) }}</span>
+                            @php
+                            $todas = $item['semanas'] === [1,2,3,4,5];
+                            $semanasTxt = $todas ? '1–5' : implode(',', $item['semanas']);
+                            @endphp
+                            <span class="ms-auto semanas-badge">semana(s) {{ $semanasTxt }}</span>
                         </div>
                         @endforeach
                     </div>
