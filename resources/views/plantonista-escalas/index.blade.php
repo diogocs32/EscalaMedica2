@@ -273,13 +273,7 @@
                                 {{ $item['setor_nome'] }}
                             </div>
                             @endif
-                            @php
-                            // Exibir semanas somente se não forem todas (1..5). Se forem todas, omitir para ficar mais limpo.
-                            $todasSemanas = $item['semanas'] === [1,2,3,4,5];
-                            @endphp
-                            @unless($todasSemanas)
                             <span class="ms-auto text-muted small">sem. {{ implode(',', $item['semanas']) }}</span>
-                            @endunless
                         </div>
                         @endforeach
                     </div>
