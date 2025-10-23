@@ -115,6 +115,16 @@
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
+            /* Deixar os bloquinhos com um tamanho mínimo uniforme,
+               mas permitindo crescer para nomes maiores */
+            display: inline-flex;
+            /* aplica min-width em ambos (ocupado e buraco) */
+            align-items: center;
+            justify-content: center;
+            min-width: 10ch;
+            /* cabe ~"guilherme"/"valentina" */
+            white-space: nowrap;
+            /* não quebrar o nome em várias linhas */
         }
 
         .badge-slot:hover {
@@ -223,6 +233,22 @@
             font-size: .7rem;
             padding: .2rem .4rem;
         }
+
+        /* Separadores verticais entre todas as colunas da planilha principal */
+        table.table-schedule {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        table.table-schedule th,
+        table.table-schedule td {
+            border-right: 1px solid #e9ecef;
+        }
+
+        table.table-schedule th:first-child,
+        table.table-schedule td:first-child {
+            border-left: 1px solid #e9ecef;
+        }
     </style>
 </head>
 
@@ -327,7 +353,7 @@
                 <div class="ms-auto small soft">Configurações exibidas por Turno → Setor</div>
             </div>
             <div class="table-responsive">
-                <table class="table table-sm align-middle mb-0">
+                <table class="table table-sm align-middle mb-0 table-schedule">
                     <thead class="thead-floating">
                         <tr class="turno-header">
                             <th class="day-col">Dia</th>
@@ -362,22 +388,43 @@
                                 @if($qtd > 0)
                                 @for($i = 1; $i <= $qtd; $i++)
                                     @php
-                                    // Mapear dia para número: domingo=1, segunda=2, ..., sabado=7
                                     $diasMap=['domingo'=> 1, 'segunda' => 2, 'terca' => 3, 'quarta' => 4, 'quinta' => 5, 'sexta' => 6, 'sabado' => 7];
                                     $diaNum = $diasMap[$dKey] ?? 1;
-                                    $slotKey = $sem . '-' . $diaNum . '-' . $tId . '-' . $sId . '-' . $i;
+                                    // Buscar o slot correspondente
+                                    $slot = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escala->id)
+                                    ->where('semana', $sem)
+                                    ->where('dia', $diaNum)
+                                    ->where('turno_id', $tId)
+                                    ->where('setor_id', $sId)
+                                    ->orderBy('id')
+                                    ->skip($i-1)
+                                    ->first();
                                     @endphp
+                                    @if($slot && $slot->plantonista_id)
+                                    <span class="badge badge-slot ocupado mb-1"
+                                        data-semana="{{ $sem }}"
+                                        data-dia="{{ $diaNum }}"
+                                        data-turno="{{ $tId }}"
+                                        data-setor="{{ $sId }}"
+                                        data-slot="{{ $i }}"
+                                        data-slot-key="{{ $sem . '-' . $diaNum . '-' . $tId . '-' . $sId . '-' . $i }}"
+                                        data-turno-inicio="{{ $info['turno']->hora_inicio }}"
+                                        data-turno-fim="{{ $info['turno']->hora_fim }}">
+                                        {{ $slot->plantonista->nome ?? 'Plantonista' }}
+                                    </span>
+                                    @else
                                     <span class="badge badge-soft badge-slot buraco mb-1"
                                         data-semana="{{ $sem }}"
                                         data-dia="{{ $diaNum }}"
                                         data-turno="{{ $tId }}"
                                         data-setor="{{ $sId }}"
                                         data-slot="{{ $i }}"
-                                        data-slot-key="{{ $slotKey }}"
+                                        data-slot-key="{{ $sem . '-' . $diaNum . '-' . $tId . '-' . $sId . '-' . $i }}"
                                         data-turno-inicio="{{ $info['turno']->hora_inicio }}"
                                         data-turno-fim="{{ $info['turno']->hora_fim }}">
                                         Buraco {{ $i }}
                                     </span>
+                                    @endif
                                     @endfor
                                     @else
                                     <span class="cell-empty">—</span>
@@ -939,7 +986,8 @@
                     if (slot) {
                         const plantonista = plantonistas.find(p => p.id == aloc.plantonista_id);
                         if (plantonista) {
-                            slot.classList.remove('disponivel', 'indisponivel', 'buraco', 'ocupado-selecionado', 'buraco-disponivel', 'buraco-indisponivel');
+                            // Remover classes de estados de buraco e estilos suaves
+                            slot.classList.remove('disponivel', 'indisponivel', 'buraco', 'ocupado-selecionado', 'buraco-disponivel', 'buraco-indisponivel', 'badge-soft');
                             slot.classList.add('ocupado');
                             slot.textContent = plantonista.nome.split(' ')[0];
                             slot.title = `${plantonista.nome}\nCRM: ${plantonista.crm || 'N/D'}`;
@@ -949,7 +997,7 @@
 
                 atualizarSlotsDisponiveis();
             } catch (error) {
-                console.error('Erro ao carregar alocações:', error);
+                console.error('Erro ao carregar alocacoes:', error);
             }
         }
 
@@ -1008,7 +1056,7 @@
 
             console.log('  📊 Conversão:', {
                 turno1: `${turno1Inicio} (${t1i}min) - ${turno1Fim} (${t1f}min)`,
-                turno2: `${turno2Inicio} (${t2i}min) - ${turno2Fim} (${t2f}min)`
+                turno2: `${t2i} (${t2i}min) - ${t2f} (${t2f}min)`
             });
 
             // Tratar turnos que passam da meia-noite (ex: 19:00-07:00)
@@ -1054,14 +1102,14 @@
 
                     if (pid) {
                         // Ocupado (azul)
-                        slot.classList.remove('buraco');
+                        slot.classList.remove('buraco', 'badge-soft');
                         slot.classList.add('ocupado');
                         const plantonista = plantonistas.find(p => p.id == pid);
                         slot.textContent = plantonista ? plantonista.nome.split(' ')[0] : 'Ocupado';
                     } else {
                         // Buraco (vermelho)
                         slot.classList.remove('ocupado');
-                        slot.classList.add('buraco');
+                        slot.classList.add('buraco', 'badge-soft');
                         slot.textContent = `Buraco ${slot.dataset.slot}`;
                     }
                 });
@@ -1084,6 +1132,8 @@
                 if (alocacoes[key]) {
                     slot.classList.remove('disponivel', 'indisponivel', 'buraco');
                     slot.classList.add('ocupado');
+                    // Garantir que estilos de buraco não persistam
+                    slot.classList.remove('badge-soft', 'buraco-disponivel', 'buraco-indisponivel');
                     const plantonista = plantonistas.find(p => p.id == alocacoes[key]);
                     slot.textContent = plantonista ? plantonista.nome.split(' ')[0] : 'Ocupado';
 
@@ -1141,14 +1191,14 @@
                 if (temConflitoDia) {
                     // Conflito: manter buraco em vermelho, porém com indicação de bloqueio
                     slot.classList.remove('disponivel', 'ocupado', 'ocupado-selecionado', 'buraco-disponivel');
-                    slot.classList.add('buraco', 'buraco-indisponivel');
+                    slot.classList.add('buraco', 'badge-soft', 'buraco-indisponivel');
                     slot.title = 'Conflito de horário com outra alocação';
                     return;
                 }
 
                 // Disponível: manter visual de buraco em vermelho com leve destaque
                 slot.classList.remove('ocupado', 'ocupado-selecionado', 'buraco-indisponivel');
-                slot.classList.add('buraco', 'buraco-disponivel');
+                slot.classList.add('buraco', 'badge-soft', 'buraco-disponivel');
                 slot.title = 'Clique para alocar ' + plantonistaSelecionado.nome;
             });
         }
@@ -1178,7 +1228,7 @@
                 if (success) {
                     delete alocacoes[key];
                     slot.classList.remove('ocupado', 'ocupado-selecionado');
-                    slot.classList.add('buraco');
+                    slot.classList.add('buraco', 'badge-soft');
                     slot.textContent = `Buraco ${slot.dataset.slot}`;
                     atualizarSlotsDisponiveis();
                 }
@@ -1193,7 +1243,7 @@
             if (success) {
                 alocacoes[key] = plantonistaSelecionado.id;
 
-                slot.classList.remove('disponivel', 'buraco', 'buraco-disponivel', 'buraco-indisponivel');
+                slot.classList.remove('disponivel', 'buraco', 'buraco-disponivel', 'buraco-indisponivel', 'badge-soft');
                 slot.classList.add('ocupado', 'ocupado-selecionado');
                 slot.textContent = plantonistaSelecionado.nome.split(' ')[0];
                 slot.title = plantonistaSelecionado.nome;

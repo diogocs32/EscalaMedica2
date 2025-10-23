@@ -291,4 +291,27 @@ class EscalaPublicadaController extends Controller
 
         return response()->json($events);
     }
+
+    /**
+     * Exclui uma escala publicada e suas alocações (cascade pelo banco).
+     */
+    public function destroy(EscalaPublicada $escalaPublicada)
+    {
+        try {
+            $resumo = sprintf(
+                '%s/%s - %s',
+                $escalaPublicada->mes,
+                $escalaPublicada->ano,
+                optional($escalaPublicada->unidade)->nome ?? 'Unidade'
+            );
+
+            $escalaPublicada->delete();
+
+            return redirect()
+                ->route('alocacoes.index')
+                ->with('success', "Escala publicada ({$resumo}) excluída com sucesso.");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Erro ao excluir escala publicada: ' . $e->getMessage());
+        }
+    }
 }

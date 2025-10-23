@@ -143,6 +143,55 @@
 
 ---
 
+## 🎨 Regras Visuais (Views)
+
+> Objetivo: Documentar a formatação visível ao cliente nas principais views e manter alinhada com o que está em produção. Sempre que houver alteração visual relevante, atualizar esta seção e o índice de nomenclaturas.
+
+### RNV001 - Chips de Slot na Planilha (tamanho mínimo)
+- **Regra**: Os “bloquinhos” que exibem plantonista ou buraco devem ter largura mínima uniforme para facilitar a leitura, mas crescer quando o nome for maior.
+- **Implementação**: Classe `.badge-slot` com `display: inline-flex; align-items: center; justify-content: center; min-width: 10ch; white-space: nowrap;`.
+- **Arquivo**: `resources/views/escalas-padrao/planilha.blade.php`
+- **Impacto**: Melhora a consistência visual e a legibilidade; evita que chips curtos “saltem” no layout.
+- **Status**: ✅ Implementado (2025-10-23)
+
+### RNV002 - Paleta de estados dos slots (ocupado/buraco/seleção)
+- **Regra**: Manter paleta consistente com as métricas: ocupado em azul, buraco em vermelho sutil; destacar seleção atual do plantonista em verde sutil; conflitos com borda tracejada.
+- **Implementação**:
+	- Ocupado: `.badge-slot.ocupado` (azul sutil)
+	- Buraco: `.badge-slot.buraco.badge-soft` (vermelho sutil)
+	- Ocupado pelo selecionado: `.badge-slot.ocupado-selecionado` (verde sutil)
+	- Buraco disponível p/ selecionado: `.badge-slot.buraco-disponivel` (pulse)
+	- Buraco indisponível (conflito): `.badge-slot.buraco-indisponivel` (borda tracejada, opacidade)
+- **Arquivos**: `resources/views/escalas-padrao/planilha.blade.php` (CSS inline + JS de troca de classes)
+- **Impacto**: Usuário entende rapidamente o estado de cada slot.
+- **Status**: ✅ Implementado (2025-10-23)
+
+### RNV003 - Separadores de colunas e cabeçalhos fixos
+- **Regra**: Exibir linhas verticais entre todas as colunas da planilha; cabeçalhos “grudados” ao topo ao rolar.
+- **Implementação**: Classe de tabela `.table-schedule` com bordas direita/esquerda; cabeçalhos com `.thead-floating`, `.turno-header` e `.setor-header`.
+- **Arquivo**: `resources/views/escalas-padrao/planilha.blade.php`
+- **Impacto**: Leitura mais fácil por coluna; contexto do cabeçalho mantido.
+- **Status**: ✅ Implementado (2025-10-23)
+
+### RNV004 - Conteúdo curto no chip + tooltip completo
+- **Regra**: Exibir apenas o primeiro nome no chip (melhor densidade). Mostrar nome completo e CRM no `title` (tooltip nativo) quando ocupado.
+- **Implementação**: JS define `slot.textContent = primeiroNome` e `slot.title = "Nome Completo\nCRM: ..."`.
+- **Arquivo**: `resources/views/escalas-padrao/planilha.blade.php`
+- **Impacto**: Interface limpa, sem perder o detalhe (via tooltip).
+- **Status**: ✅ Implementado (2025-10-23)
+
+### RNV005 - Legendas e métricas visuais
+- **Regra**: Mostrar badges com Total, Preenchidos, Buracos e Taxa; legenda explícita para “Buraco” e “Sem configuração”.
+- **Implementação**: Badges Bootstrap com classes `bg-*-subtle` e `text-*` alinhadas à paleta dos slots.
+- **Arquivo**: `resources/views/escalas-padrao/planilha.blade.php`
+- **Impacto**: Usuário tem visão macro da cobertura antes de editar.
+- **Status**: ✅ Implementado (2025-10-23)
+
+### 📌 Governança Visual
+- Alterou alguma classe CSS ou estilo na planilha? Atualizar: (1) esta seção; (2) `INDICE_NOMENCLATURAS.md` em “CSS & STYLING – Planilha (Escala Padrão)”.
+- Alterou comportamento de seleção/conflito? Atualizar a descrição dos estados em RNV002.
+- Alterou tamanhos mínimos ou layout da tabela? Atualizar RNV001 e RNV003.
+
 ## 🩺 Atendimentos
 
 ### RN012 - Triagem Obrigatória na Emergência

@@ -508,56 +508,68 @@
 
     <!-- Modal de Copiar -->
     <div class="modal" id="copyModal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 1400px; width: 95%;">
             <div class="modal-header">
                 <h3>📋 Copiar Configurações</h3>
                 <p style="color: #7f8c8d; font-size: 13px; margin-top: 5px;">
-                    Copiar as {{ $diaTemplate->configuracoes->count() }} configuração(ões) deste dia para:
+                    Copiar as {{ $diaTemplate->configuracoes->count() }} configuração(ões) de <strong>{{ ucfirst($diaTemplate->dia_semana) }} - Semana {{ $semanaTemplate->numero_semana }}</strong> para:
                 </p>
             </div>
 
             <form action="{{ route('escalas-padrao.copiar-dia', [$unidade->id, $semanaTemplate->numero_semana, $diaTemplate->dia_semana]) }}" method="POST">
                 @csrf
 
-                <div class="form-group">
-                    <label>Semana de Destino</label>
-                    <select name="semana_destino" required style="margin-bottom: 15px;">
+                <div style="margin-bottom: 20px;">
+                    <label style="font-weight: 600; margin-bottom: 12px; display: block; font-size: 15px;">Selecione os dias de destino:</label>
+
+                    <!-- Grid com 5 semanas lado a lado -->
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 20px;">
                         @for($s = 1; $s <= 5; $s++)
-                            <option value="{{ $s }}" {{ $s == $semanaTemplate->numero_semana ? 'selected' : '' }}>
-                            Semana {{ $s }}
-                            </option>
-                            @endfor
-                    </select>
+                            <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; border: 2px solid {{ $s == $semanaTemplate->numero_semana ? '#3498db' : '#e9ecef' }};">
+                            <div style="font-weight: 600; margin-bottom: 12px; color: #2c3e50; text-align: center; font-size: 14px;">
+                                📅 Semana {{ $s }}
+                                @if($s == $semanaTemplate->numero_semana)
+                                <span style="color: #3498db; font-size: 11px; display: block; margin-top: 3px;">(origem)</span>
+                                @endif
+                            </div>
+
+                            @foreach(['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'] as $dia)
+                            <label class="checkbox-label" style="display: block; padding: 6px 8px; margin-bottom: 4px; border-radius: 4px; font-size: 13px; cursor: pointer; transition: background 0.2s;"
+                                onmouseover="this.style.background='#e9ecef'"
+                                onmouseout="this.style.background='transparent'">
+                                <input
+                                    type="checkbox"
+                                    name="dias_destino[]"
+                                    value="{{ $s }}_{{ $dia }}"
+                                    {{ ($dia == $diaTemplate->dia_semana && $s == $semanaTemplate->numero_semana) ? 'disabled checked' : '' }}
+                                    style="margin-right: 8px;">
+                                {{ ucfirst($dia) }}
+                                @if($dia == $diaTemplate->dia_semana && $s == $semanaTemplate->numero_semana)
+                                <span style="color: #3498db; font-size: 10px;">✓</span>
+                                @endif
+                            </label>
+                            @endforeach
+                    </div>
+                    @endfor
                 </div>
 
-                <div class="checkbox-group">
-                    <label style="font-weight: 600; margin-bottom: 10px; display: block;">Dias de Destino:</label>
-                    @foreach(['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'] as $dia)
-                    <label class="checkbox-label">
-                        <input
-                            type="checkbox"
-                            name="dias_destino[]"
-                            value="{{ $dia }}"
-                            {{ $dia == $diaTemplate->dia_semana ? 'disabled' : '' }}>
-                        {{ ucfirst($dia) }}
-                        {{ $dia == $diaTemplate->dia_semana ? '(origem)' : '' }}
-                    </label>
-                    @endforeach
-                </div>
-
-                <div class="checkbox-group" style="margin-top: 15px;">
-                    <label class="checkbox-label">
+                <div class="checkbox-group" style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px 15px; border-radius: 6px;">
+                    <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                         <input type="checkbox" name="sobrescrever" value="1">
-                        Sobrescrever configurações existentes
+                        <span style="font-weight: 600; color: #856404;">⚠️ Sobrescrever configurações existentes</span>
                     </label>
+                    <p style="font-size: 11px; color: #856404; margin: 5px 0 0 28px;">
+                        Se marcado, as configurações dos dias de destino serão substituídas
+                    </p>
                 </div>
-
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">✓ Copiar</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeCopyModal()" style="flex: 1;">Cancelar</button>
-                </div>
-            </form>
         </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">✓ Copiar Configurações</button>
+            <button type="button" class="btn btn-secondary" onclick="closeCopyModal()" style="flex: 1;">Cancelar</button>
+        </div>
+        </form>
+    </div>
     </div>
 
     <script>

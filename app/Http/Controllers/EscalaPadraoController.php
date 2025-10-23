@@ -296,6 +296,14 @@ class EscalaPadraoController extends Controller
         $turnos = Turno::where('status', 'ativo')->orderBy('hora_inicio')->get();
         $setores = Setor::where('status', 'ativo')->orderBy('nome')->get();
 
+        // Ordenar configurações por hora_inicio do turno
+        $diaTemplate->setRelation(
+            'configuracoes',
+            $diaTemplate->configuracoes->sortBy(function ($config) {
+                return $config->turno->hora_inicio;
+            })
+        );
+
         // Combos já configurados
         $configsExistentes = $diaTemplate->configuracoes
             ->map(fn($c) => $c->turno_id . '_' . $c->setor_id)
@@ -381,9 +389,8 @@ class EscalaPadraoController extends Controller
     public function copiarDia(Request $request, Unidade $unidade, $semana, $dia)
     {
         $validated = $request->validate([
-            'semana_destino' => 'required|integer|min:1|max:5',
             'dias_destino' => 'required|array',
-            'dias_destino.*' => 'required|in:segunda,terca,quarta,quinta,sexta,sabado,domingo',
+            'dias_destino.*' => ['required', 'regex:/^\d+_(segunda|terca|quarta|quinta|sexta|sabado|domingo)$/'],
             'sobrescrever' => 'nullable|boolean',
         ]);
 
@@ -400,10 +407,13 @@ class EscalaPadraoController extends Controller
         try {
             DB::beginTransaction();
 
-            $semanaDestino = $escala->semanas()->where('numero_semana', $validated['semana_destino'])->firstOrFail();
             $copiadosCount = 0;
 
-            foreach ($validated['dias_destino'] as $diaDestinoNome) {
+            foreach ($validated['dias_destino'] as $destino) {
+                // Parsear formato "semana_dia" ex: "1_segunda", "2_terca"
+                [$semanaNum, $diaDestinoNome] = explode('_', $destino);
+
+                $semanaDestino = $escala->semanas()->where('numero_semana', $semanaNum)->firstOrFail();
                 $diaDestino = $semanaDestino->dias()->where('dia_semana', $diaDestinoNome)->firstOrFail();
 
                 // Se sobrescrever, remover configs existentes
@@ -482,7 +492,7 @@ class EscalaPadraoController extends Controller
             $resultado[$key] = [
                 'id' => $aloc->id,
                 'plantonista_id' => $aloc->plantonista_id,
-                'plantonista_nome' => $aloc->plantonista->nome,
+                'plantonista_nome' => $aloc->plantonista?->nome,
             ];
         }
 

@@ -132,12 +132,22 @@ class PlantonisταController extends Controller
                     ->withErrors(['error' => 'Não é possível excluir este plantonista pois existem alocações associadas.']);
             }
 
+            DB::beginTransaction();
+
+            // Antes de excluir, transformar todos os slots da escala padrão em buraco
+            $buracos = DB::table('alocacoes_template')
+                ->where('plantonista_id', $plantonista->id)
+                ->update(['plantonista_id' => null]);
+
             $plantonista->delete();
+
+            DB::commit();
 
             return redirect()
                 ->route('plantonistas.index')
-                ->with('success', 'Plantonista removido com sucesso!');
+                ->with('success', 'Plantonista removido com sucesso! Todos os slots da escala padrão que ele cobria viraram buraco.');
         } catch (\Exception $e) {
+            DB::rollBack();
             return back()
                 ->withErrors(['error' => 'Erro ao remover plantonista: ' . $e->getMessage()]);
         }

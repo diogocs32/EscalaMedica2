@@ -125,6 +125,30 @@
   - Função: Painel principal com estatísticas
   - Framework: Bootstrap 5.3.0
 
+### Views – Escala Padrão
+- **`escalas-padrao/resumo.blade.php`**
+  - Localização: `resources/views/escalas-padrao/resumo.blade.php`
+  - Função: Cards-resumo por unidade (métricas e navegação)
+  - Framework: Bootstrap 5.3.0 + Bootstrap Icons
+
+- **`escalas-padrao/planilha.blade.php`**
+  - Localização: `resources/views/escalas-padrao/planilha.blade.php`
+  - Função: Planilha 5×7 com Turno → Setor, edição de slots e Atribuição Rápida
+  - Estilos: CSS inline específico (ver seção CSS & STYLING – Planilha)
+  - JS: Lógica de estados de slot e clonagem de dia/semana
+
+- **`escalas-padrao/index.blade.php`**
+  - Localização: `resources/views/escalas-padrao/index.blade.php`
+  - Função: Visualização das 5 semanas em tabs
+
+- **`escalas-padrao/create.blade.php`**
+  - Localização: `resources/views/escalas-padrao/create.blade.php`
+  - Função: Criação de escala padrão
+
+- **`escalas-padrao/edit-dia.blade.php`**
+  - Localização: `resources/views/escalas-padrao/edit-dia.blade.php`
+  - Função: Configuração granular por dia (Turno + Setor + Quantidade)
+
 ---
 
 ## 🗄️ DATABASE
@@ -170,6 +194,20 @@
 - **`.stats-card`** → Usado em `dashboard/index.blade.php`
 - **`.quick-access-card`** → Usado em `dashboard/index.blade.php`
 - **`.content-card`** → Usado em `dashboard/index.blade.php`
+
+### Planilha (Escala Padrão)
+- **`.badge-slot`** → Chip de slot (nome do plantonista ou "Buraco N"); min-width: 10ch; centralizado; não quebra linha. Arquivo: `escalas-padrao/planilha.blade.php`
+- **`.badge-slot.ocupado`** → Slot ocupado (paleta azul sutil). Arquivo: `escalas-padrao/planilha.blade.php`
+- **`.badge-slot.buraco`** + `.badge-soft` → Slot vazio (buraco) com paleta vermelha sutil. Arquivo: `escalas-padrao/planilha.blade.php`
+- **`.badge-slot.ocupado-selecionado`** → Slot ocupado pelo plantonista atualmente selecionado (verde sutil). Arquivo: `escalas-padrao/planilha.blade.php`
+- **`.badge-slot.buraco-disponivel`** → Buraco disponível para o selecionado (efeito pulse). Arquivo: `escalas-padrao/planilha.blade.php`
+- **`.badge-slot.buraco-indisponivel`** → Buraco indisponível por conflito (borda tracejada, opacidade). Arquivo: `escalas-padrao/planilha.blade.php`
+- **`.table-schedule`** → Tabela principal com separadores verticais em todas as colunas. Arquivo: `escalas-padrao/planilha.blade.php`
+- **`.thead-floating`** → Cabeçalho fixo ao topo ao rolar. Arquivo: `escalas-padrao/planilha.blade.php`
+- **`.turno-header`** / **`.setor-header`** → Cabeçalhos de Turno e Setor (estilização e alinhamento). Arquivo: `escalas-padrao/planilha.blade.php`
+- **`.day-col`** → Largura padrão da coluna de dia (160px). Arquivo: `escalas-padrao/planilha.blade.php`
+
+> Manutenção: ao alterar a paleta/estados da planilha, atualizar esta lista e a seção "🎨 Regras Visuais (Views)" em `docs/REGRAS_DE_NEGOCIO.md`.
 
 ### Framework
 - **Bootstrap 5.3.0** → CDN usado em todas as views

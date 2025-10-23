@@ -1,0 +1,6 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /EscalaMedica2/
+    RewriteCond %{REQUEST_URI} !^/EscalaMedica2/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

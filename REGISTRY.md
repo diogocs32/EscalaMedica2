@@ -775,3 +775,23 @@
 
 **📍 Última verificação de integridade**: 2025-10-20  
 **🔄 Próxima revisão programada**: A cada nova implementação
+
+### Atualizações Recentes (2025-10-22)
+- Rotas/UI:
+  - Adicionado botão "Excluir" nos cards de Escalas Publicadas em `alocacoes/index` com confirmação.
+  - Nova rota: `DELETE /escalas-publicadas/{escalaPublicada}` (`escalas-publicadas.destroy`) para remover uma escala publicada e suas alocações (cascade).
+- Banco de Dados:
+  - Ajuste de FKs em `alocacoes_template` para `ON DELETE CASCADE` (`setor_id`, `turno_id`, `plantonista_id`).
+    - Impacto: Agora é possível excluir um Setor referenciado por templates; os registros relacionados em `alocacoes_template` serão removidos automaticamente.
+
+### Atualização 2025-10-23
+- Exclusão de Plantonista:
+  - Ao remover um plantonista, todos os slots que ele cobre na escala padrão (`alocacoes_template`) viram buraco (plantonista_id = null).
+  - Não altera nada na escala publicada.
+  - Implementado no método destroy do PlantonisταController.
+  
+### Atualização 2025-10-23 (Banco de Dados)
+- Correção: A coluna `plantonista_id` em `alocacoes_template` agora é nullable e ON DELETE SET NULL.
+  - Impacto: Permite que todos os slots da escala padrão sejam transformados em buracos ao excluir um plantonista, conforme regra de negócio.
+  - Migration criada: `2025_10_23_120000_make_plantonista_id_nullable_in_alocacoes_template.php`
+  - Testado: Exclusão de plantonista não gera mais erro de constraint.

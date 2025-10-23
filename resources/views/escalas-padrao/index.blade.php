@@ -382,7 +382,9 @@
                         @foreach($dias as $dia)
                         @php
                         $diaTemplate = $semana->dias->firstWhere('dia_semana', $dia);
-                        $configs = $diaTemplate ? $diaTemplate->configuracoes : collect();
+                        $configs = $diaTemplate ? $diaTemplate->configuracoes->sortBy(function($config) {
+                        return $config->turno->hora_inicio;
+                        }) : collect();
                         @endphp
                         <div class="dia-card">
                             <div class="dia-header">
