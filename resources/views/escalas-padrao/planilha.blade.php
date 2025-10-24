@@ -361,7 +361,16 @@
                             <th class="text-center" colspan="{{ count($info['setores']) }}">
                                 {{ $info['turno']->nome }}
                                 @if($info['turno']->hora_inicio && $info['turno']->hora_fim)
-                                <div class="small soft">{{ substr($info['turno']->hora_inicio,0,5) }} – {{ substr($info['turno']->hora_fim,0,5) }}</div>
+                                @php
+                                // Extrair apenas a hora (HH:MM) independente do formato
+                                $inicio = strlen($info['turno']->hora_inicio) > 8
+                                ? substr($info['turno']->hora_inicio, 11, 5)
+                                : substr($info['turno']->hora_inicio, 0, 5);
+                                $fim = strlen($info['turno']->hora_fim) > 8
+                                ? substr($info['turno']->hora_fim, 11, 5)
+                                : substr($info['turno']->hora_fim, 0, 5);
+                                @endphp
+                                <div class="small soft">{{ $inicio }} – {{ $fim }}</div>
                                 @endif
                             </th>
                             @endforeach

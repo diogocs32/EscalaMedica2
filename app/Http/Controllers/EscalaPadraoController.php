@@ -110,9 +110,18 @@ class EscalaPadraoController extends Controller
      */
     public function planilha(Unidade $unidade)
     {
+        // Força refresh para evitar cache do Eloquent
         $escala = $unidade->escalaPadrao()->where('status', 'ativo')
             ->with(['semanas.dias.configuracoes.turno', 'semanas.dias.configuracoes.setor'])
-            ->firstOrFail();
+            ->first();
+
+        if (!$escala) {
+            return redirect()->route('escalas-padrao.index', $unidade)
+                ->with('warning', 'Esta unidade ainda não possui escala padrão.');
+        }
+
+        // Refresh para garantir dados atualizados
+        $escala->load(['semanas.dias.configuracoes.turno', 'semanas.dias.configuracoes.setor']);
 
         // Listar turnos presentes nas configurações e seus setores únicos
         $turnosMapa = []; // turno_id => ['turno'=>$turno, 'setores'=>[setor_id=>Setor]]
