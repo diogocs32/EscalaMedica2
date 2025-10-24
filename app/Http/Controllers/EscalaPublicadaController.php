@@ -120,6 +120,99 @@ class EscalaPublicadaController extends Controller
     }
 
     /**
+     * Tela de edição rápida com dropdown de plantonistas e validação de conflitos.
+     */
+    public function editRapido(EscalaPublicada $escalaPublicada)
+    {
+        // Usar os mesmos dados do método edit()
+        $escalaPublicada->load(['unidade.cidade', 'escalaPadrao', 'alocacoes.turno', 'alocacoes.setor', 'alocacoes.plantonista']);
+
+        $ano = (int) $escalaPublicada->ano;
+        $mes = (int) $escalaPublicada->mes;
+        $inicioMes = Carbon::create($ano, $mes, 1);
+        $fimMes = (clone $inicioMes)->endOfMonth();
+        $daysInMonth = $fimMes->day;
+
+        $turnos = \App\Models\Turno::orderBy('hora_inicio')->get();
+        $setores = \App\Models\Setor::orderBy('id')->get();
+
+        $mapaAlocacoes = [];
+        $combAtivas = [];
+        foreach ($escalaPublicada->alocacoes as $aloc) {
+            if (!$aloc->turno_id || !$aloc->setor_id) continue;
+            $key = Carbon::parse($aloc->data)->format('Y-m-d');
+            $mapaAlocacoes[$key][$aloc->turno_id][$aloc->setor_id][] = $aloc;
+            $combAtivas[$aloc->turno_id][$aloc->setor_id] = true;
+        }
+
+        $rows = [];
+        for ($dia = 1; $dia <= $daysInMonth; $dia++) {
+            $data = Carbon::create($ano, $mes, $dia);
+            $key = $data->format('Y-m-d');
+            $semana = (int) ceil($dia / 7);
+
+            $row = [
+                'dia' => $dia,
+                'semana' => $semana,
+                'data' => $data,
+                'weekday' => $data->locale('pt_BR')->isoFormat('dddd'),
+                'slots' => []
+            ];
+
+            foreach ($turnos as $turno) {
+                foreach ($setores as $setor) {
+                    $row['slots'][$turno->id][$setor->id] = $mapaAlocacoes[$key][$turno->id][$setor->id] ?? [];
+                }
+            }
+
+            $rows[] = $row;
+        }
+
+        $plantonistas = Plantonista::query()
+            ->when(method_exists(Plantonista::class, 'scopeAtivo'), fn($q) => $q->ativo())
+            ->orderBy('nome')
+            ->get();
+
+        $setoresAtivosPorTurno = [];
+        foreach ($turnos as $t) {
+            foreach ($setores as $s) {
+                if (!empty($combAtivas[$t->id][$s->id])) {
+                    $setoresAtivosPorTurno[$t->id][] = $s;
+                }
+            }
+        }
+        $turnosAtivos = $turnos->filter(fn($t) => !empty($setoresAtivosPorTurno[$t->id] ?? []))->values();
+
+        $ocupacaoPorDia = [];
+        foreach ($escalaPublicada->alocacoes as $aloc) {
+            if (!$aloc->plantonista_id || !$aloc->turno) continue;
+            $inicio = optional($aloc->turno->hora_inicio) ? (string) $aloc->turno->hora_inicio : null;
+            $fim = optional($aloc->turno->hora_fim) ? (string) $aloc->turno->hora_fim : null;
+            if (!$inicio || !$fim) continue;
+
+            $diaKey = Carbon::parse($aloc->data)->format('Y-m-d');
+            $ocupacaoPorDia[$diaKey][$aloc->plantonista_id][] = [
+                'inicio' => $inicio,
+                'fim' => $fim,
+                'alocacao_id' => $aloc->id,
+                'turno_id' => $aloc->turno_id,
+                'setor_id' => $aloc->setor_id,
+            ];
+        }
+
+        return view('escalas-publicadas.edit-rapido', compact(
+            'escalaPublicada',
+            'rows',
+            'turnos',
+            'setores',
+            'plantonistas',
+            'ocupacaoPorDia',
+            'setoresAtivosPorTurno',
+            'turnosAtivos'
+        ));
+    }
+
+    /**
      * Atualiza uma alocação publicada (atribuir/remover plantonista, status, observações).
      */
     public function updateAlocacao(Request $request, AlocacaoPublicada $alocacaoPublicada)

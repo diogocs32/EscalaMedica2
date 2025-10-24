@@ -169,11 +169,16 @@
                         </div>
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3 px-3">
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('escalas-publicadas.edit', $escala['id']) }}" class="btn btn-sm btn-outline-warning w-100">
-                                <i class="bi bi-pencil"></i> Editar
-                            </a>
-                            <form class="w-100" action="{{ route('escalas-publicadas.destroy', $escala['id']) }}" method="POST" onsubmit="return confirm('Confirma excluir esta escala publicada? Todas as alocações deste mês serão removidas.');">
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('escalas-publicadas.edit', $escala['id']) }}" class="btn btn-sm btn-outline-warning w-100">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                                <a href="{{ route('escalas-publicadas.edit-rapido', $escala['id']) }}" class="btn btn-sm btn-outline-success w-100">
+                                    <i class="bi bi-lightning-charge-fill"></i> Rápida
+                                </a>
+                            </div>
+                            <form action="{{ route('escalas-publicadas.destroy', $escala['id']) }}" method="POST" onsubmit="return confirm('Confirma excluir esta escala publicada? Todas as alocações deste mês serão removidas.');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger w-100">

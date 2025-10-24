@@ -89,6 +89,9 @@ Route::resource('alocacoes', AlocacaoController::class);
 // Escalas Publicadas - Edição mensal por dia do mês
 Route::get('/escalas-publicadas/{escalaPublicada}/edit', [EscalaPublicadaController::class, 'edit'])
     ->name('escalas-publicadas.edit');
+// Escalas Publicadas - Edição rápida com dropdown
+Route::get('/escalas-publicadas/{escalaPublicada}/edit-rapido', [EscalaPublicadaController::class, 'editRapido'])
+    ->name('escalas-publicadas.edit-rapido');
 Route::delete('/escalas-publicadas/{escalaPublicada}', [EscalaPublicadaController::class, 'destroy'])
     ->name('escalas-publicadas.destroy');
 Route::put('/escalas-publicadas/alocacoes/{alocacaoPublicada}', [EscalaPublicadaController::class, 'updateAlocacao'])
