@@ -407,4 +407,32 @@ class EscalaPublicadaController extends Controller
             return back()->with('error', 'Erro ao excluir escala publicada: ' . $e->getMessage());
         }
     }
+
+    /**
+     * API: Buscar escala publicada por ano e mês
+     */
+    public function buscarPorMes(Request $request)
+    {
+        $ano = $request->input('ano');
+        $mes = $request->input('mes');
+
+        if (!$ano || !$mes) {
+            return response()->json(['error' => 'Parâmetros ano e mes são obrigatórios'], 400);
+        }
+
+        $escala = EscalaPublicada::where('ano', $ano)
+            ->where('mes', $mes)
+            ->first();
+
+        if (!$escala) {
+            return response()->json(['error' => 'Escala não encontrada'], 404);
+        }
+
+        return response()->json([
+            'id' => $escala->id,
+            'ano' => $escala->ano,
+            'mes' => $escala->mes,
+            'unidade_id' => $escala->unidade_id,
+        ]);
+    }
 }

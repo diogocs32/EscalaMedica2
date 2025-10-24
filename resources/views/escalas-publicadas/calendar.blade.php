@@ -83,8 +83,39 @@
                 <h1 class="page-title h3 mb-0"><i class="bi bi-calendar3 me-1"></i> Calendário das Escalas Publicadas</h1>
                 <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-house"></i></a>
             </div>
-            <a href="{{ route('alocacoes.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-card-list"></i> Lista</a>
+            <div>
+                <!-- Botões em telas grandes -->
+                <div class="d-none d-md-flex gap-2">
+                    <a href="#" onclick="abrirEdicaoRapidaDoMesAtual(event)" class="btn btn-sm btn-success">
+                        <i class="bi bi-lightning-charge"></i> Atribuição Rápida
+                    </a>
+                    <a href="#" onclick="abrirEdicaoNormalDoMesAtual(event)" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Edição Normal
+                    </a>
+                    <a href="{{ route('alocacoes.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-card-list"></i> Lista
+                    </a>
+                </div>
+                <!-- Dropdown em telas pequenas -->
+                <div class="d-md-none">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i> Menu
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="abrirEdicaoRapidaDoMesAtual(event)"><i class="bi bi-lightning-charge text-success me-2"></i>Atribuição Rápida</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="abrirEdicaoNormalDoMesAtual(event)"><i class="bi bi-pencil me-2"></i>Edição Normal</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="{{ route('alocacoes.index') }}"><i class="bi bi-card-list me-2"></i>Lista</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
+        <input type="hidden" id="currentMonth" value="">
+        <input type="hidden" id="currentYear" value="">
 
         <div class="card card-shell mb-3">
             <div class="card-body">
@@ -207,10 +238,72 @@
 
             calendar.render();
 
+            // Rastrear mês atual para navegação
+            function updateCurrentMonth() {
+                const date = calendar.getDate();
+                document.getElementById('currentMonth').value = date.getMonth() + 1;
+                document.getElementById('currentYear').value = date.getFullYear();
+            }
+
+            // Atualizar no carregamento inicial
+            updateCurrentMonth();
+
+            // Atualizar quando navegar pelos meses
+            calendar.on('datesSet', updateCurrentMonth);
+
             applyBtn.addEventListener('click', function() {
                 calendar.refetchEvents();
             });
         });
+
+        // Funções de navegação para o menu dropdown
+        async function abrirEdicaoRapidaDoMesAtual(event) {
+            event.preventDefault();
+            const mes = document.getElementById('currentMonth').value;
+            const ano = document.getElementById('currentYear').value;
+
+            if (!mes || !ano) {
+                alert('Mês/ano não identificado. Aguarde o calendário carregar.');
+                return;
+            }
+
+            const escalaId = await buscarEscalaPublicada(ano, mes);
+            if (escalaId) {
+                window.location.href = `/EscalaMedica2/public/escalas-publicadas/${escalaId}/edit-rapido`;
+            } else {
+                alert(`Nenhuma escala publicada encontrada para ${mes}/${ano}.`);
+            }
+        }
+
+        async function abrirEdicaoNormalDoMesAtual(event) {
+            event.preventDefault();
+            const mes = document.getElementById('currentMonth').value;
+            const ano = document.getElementById('currentYear').value;
+
+            if (!mes || !ano) {
+                alert('Mês/ano não identificado. Aguarde o calendário carregar.');
+                return;
+            }
+
+            const escalaId = await buscarEscalaPublicada(ano, mes);
+            if (escalaId) {
+                window.location.href = `/EscalaMedica2/public/escalas-publicadas/${escalaId}/edit`;
+            } else {
+                alert(`Nenhuma escala publicada encontrada para ${mes}/${ano}.`);
+            }
+        }
+
+        async function buscarEscalaPublicada(ano, mes) {
+            try {
+                const response = await fetch(`/EscalaMedica2/public/api/escalas-publicadas/buscar?ano=${ano}&mes=${mes}`);
+                if (!response.ok) return null;
+                const data = await response.json();
+                return data.id || null;
+            } catch (error) {
+                console.error('Erro ao buscar escala:', error);
+                return null;
+            }
+        }
     </script>
 
     <!-- Modal de detalhes do evento -->

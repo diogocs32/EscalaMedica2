@@ -106,7 +106,36 @@
                 <h1 class="page-title h4 mb-0"><i class="bi bi-calendar4-week me-1"></i> Editar Escala Publicada</h1>
                 <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-house"></i></a>
             </div>
-            <a href="{{ route('alocacoes.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-card-list"></i> Lista</a>
+            <div>
+                <!-- Botões em telas grandes -->
+                <div class="d-none d-md-flex gap-2">
+                    <a href="{{ route('escalas-publicadas.edit-rapido', $escalaPublicada) }}" class="btn btn-sm btn-success">
+                        <i class="bi bi-lightning-charge"></i> Atribuição Rápida
+                    </a>
+                    <a href="{{ route('escalas-publicadas.calendar') }}?mes={{ $escalaPublicada->ano }}-{{ str_pad($escalaPublicada->mes, 2, '0', STR_PAD_LEFT) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-calendar3"></i> Ver Calendário
+                    </a>
+                    <a href="{{ route('alocacoes.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-card-list"></i> Lista
+                    </a>
+                </div>
+                <!-- Dropdown em telas pequenas -->
+                <div class="d-md-none">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i> Menu
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ route('escalas-publicadas.edit-rapido', $escalaPublicada) }}"><i class="bi bi-lightning-charge text-success me-2"></i>Atribuição Rápida</a></li>
+                            <li><a class="dropdown-item" href="{{ route('escalas-publicadas.calendar') }}?mes={{ $escalaPublicada->ano }}-{{ str_pad($escalaPublicada->mes, 2, '0', STR_PAD_LEFT) }}"><i class="bi bi-calendar3 me-2"></i>Ver Calendário</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="{{ route('alocacoes.index') }}"><i class="bi bi-card-list me-2"></i>Lista</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card card-slab mb-4">

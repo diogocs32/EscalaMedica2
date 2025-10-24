@@ -104,6 +104,10 @@ Route::get('/escalas-publicadas/calendario', [EscalaPublicadaController::class, 
 Route::get('/api/escalas-publicadas/events', [EscalaPublicadaController::class, 'events'])
     ->name('api.escalas-publicadas.events')
     ->middleware('api');
+// API para buscar escala publicada por ano/mês
+Route::get('/api/escalas-publicadas/buscar', [EscalaPublicadaController::class, 'buscarPorMes'])
+    ->name('api.escalas-publicadas.buscar')
+    ->middleware('api');
 
 // Escalas do Plantonista - Visualização consolidada
 Route::get('/escalas/plantonista', [PlantonistaEscalaController::class, 'index'])
