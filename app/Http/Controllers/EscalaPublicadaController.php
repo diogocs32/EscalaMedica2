@@ -460,6 +460,70 @@ class EscalaPublicadaController extends Controller
     }
 
     /**
+     * Remove todos os slots vazios de uma célula específica
+     * 
+     * @param Request $request
+     * @param EscalaPublicada $escalaPublicada
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function removeEmptySlots(Request $request, EscalaPublicada $escalaPublicada)
+    {
+        // Validação
+        $validated = $request->validate([
+            'semana' => 'required|integer|min:1|max:5',
+            'dia' => 'required|integer|min:1|max:31',
+            'turno_id' => 'required|exists:turnos,id',
+            'setor_id' => 'required|exists:setores,id',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Excluir slots vazios da tabela template (padrão)
+            $deletedTemplate = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escalaPublicada->escala_padrao_id)
+                ->where('semana', $validated['semana'])
+                ->where('dia', $validated['dia'])
+                ->where('turno_id', $validated['turno_id'])
+                ->where('setor_id', $validated['setor_id'])
+                ->whereNull('plantonista_id')
+                ->delete();
+
+            // Excluir slots vazios da escala publicada (mês atual)
+            $data = \Carbon\Carbon::create(
+                $escalaPublicada->ano,
+                $escalaPublicada->mes,
+                $validated['dia']
+            );
+
+            $deletedPublicada = \App\Models\AlocacaoPublicada::where('escala_publicada_id', $escalaPublicada->id)
+                ->where('turno_id', $validated['turno_id'])
+                ->where('setor_id', $validated['setor_id'])
+                ->where('data', $data->format('Y-m-d'))
+                ->whereNull('plantonista_id')
+                ->delete();
+
+            // Atualizar métricas da escala publicada
+            $escalaPublicada->refresh();
+            $escalaPublicada->recalcularMetricas();
+
+            DB::commit();
+
+            $message = $deletedTemplate > 0
+                ? "Removidos $deletedTemplate slot(s) vazio(s) com sucesso!"
+                : "Nenhum slot vazio encontrado para remover.";
+
+            return redirect()
+                ->route('escalas-publicadas.edit', $escalaPublicada)
+                ->with('success', $message);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()
+                ->withErrors(['error' => 'Erro ao remover slots vazios: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * Exclui uma escala publicada e suas alocações (cascade pelo banco).
      */
     public function destroy(EscalaPublicada $escalaPublicada)

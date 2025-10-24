@@ -85,15 +85,31 @@
 
         .btn-add-slot {
             font-size: 0.75rem;
-            padding: 0.15rem 0.4rem;
+            padding: 0.25rem 0.35rem;
             border-radius: 4px;
             border-style: dashed !important;
             border-width: 1px;
             transition: all 0.2s;
+            line-height: 1;
         }
 
         .btn-add-slot:hover {
             background: rgba(25, 135, 84, 0.1);
+            border-style: solid !important;
+        }
+
+        .btn-remove-slot {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.35rem;
+            border-radius: 4px;
+            border-style: dashed !important;
+            border-width: 1px;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+
+        .btn-remove-slot:hover {
+            background: rgba(220, 53, 69, 0.1);
             border-style: solid !important;
         }
     </style>
@@ -309,17 +325,39 @@
                                         @endforeach
                                     </div>
 
-                                    <!-- Botão para adicionar nova vaga -->
-                                    <form method="POST" action="{{ route('escalas-publicadas.slots.add', $escalaPublicada) }}" style="display:inline; margin-top: 0.25rem;">
-                                        @csrf
-                                        <input type="hidden" name="semana" value="{{ $row['semana'] }}">
-                                        <input type="hidden" name="dia" value="{{ $row['dia'] }}">
-                                        <input type="hidden" name="turno_id" value="{{ $turno->id }}">
-                                        <input type="hidden" name="setor_id" value="{{ $setor->id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-success btn-add-slot" title="Adicionar nova vaga">
-                                            <i class="bi bi-plus-circle"></i> Adicionar
-                                        </button>
-                                    </form>
+                                    <!-- Botões de ação -->
+                                    <div class="d-flex gap-1 mt-1">
+                                        <!-- Botão para adicionar nova vaga -->
+                                        <form method="POST" action="{{ route('escalas-publicadas.slots.add', $escalaPublicada) }}" style="display:inline;">
+                                            @csrf
+                                            <input type="hidden" name="semana" value="{{ $row['semana'] }}">
+                                            <input type="hidden" name="dia" value="{{ $row['dia'] }}">
+                                            <input type="hidden" name="turno_id" value="{{ $turno->id }}">
+                                            <input type="hidden" name="setor_id" value="{{ $setor->id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success btn-add-slot" title="Adicionar nova vaga">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </button>
+                                        </form>
+
+                                        <!-- Botão para excluir slots vazios (só aparece se houver vazios) -->
+                                        @php
+                                        $hasEmpty = collect($slots)->whereNull('plantonista_id')->count() > 0;
+                                        @endphp
+                                        @if($hasEmpty)
+                                        <form method="POST" action="{{ route('escalas-publicadas.slots.remove-empty', $escalaPublicada) }}"
+                                            style="display:inline;"
+                                            onsubmit="return confirm('Confirma a exclusão de todos os slots vazios desta célula?');">
+                                            @csrf
+                                            <input type="hidden" name="semana" value="{{ $row['semana'] }}">
+                                            <input type="hidden" name="dia" value="{{ $row['dia'] }}">
+                                            <input type="hidden" name="turno_id" value="{{ $turno->id }}">
+                                            <input type="hidden" name="setor_id" value="{{ $setor->id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-remove-slot" title="Excluir slots vazios">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                        @endif
+                                    </div>
                                     @else
                                     <span class="text-muted text-center d-block">—</span>
 

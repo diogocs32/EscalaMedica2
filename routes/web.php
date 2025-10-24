@@ -101,6 +101,10 @@ Route::put('/escalas-publicadas/alocacoes/{alocacaoPublicada}', [EscalaPublicada
 Route::post('/escalas-publicadas/{escalaPublicada}/slots/add', [EscalaPublicadaController::class, 'addSlot'])
     ->name('escalas-publicadas.slots.add');
 
+// Excluir slots vazios de uma célula específica
+Route::post('/escalas-publicadas/{escalaPublicada}/slots/remove-empty', [EscalaPublicadaController::class, 'removeEmptySlots'])
+    ->name('escalas-publicadas.slots.remove-empty');
+
 // Escalas Publicadas - Calendário (consulta)
 Route::get('/escalas-publicadas/calendario', [EscalaPublicadaController::class, 'calendar'])
     ->name('escalas-publicadas.calendar');
