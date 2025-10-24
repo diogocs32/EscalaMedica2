@@ -97,6 +97,10 @@ Route::delete('/escalas-publicadas/{escalaPublicada}', [EscalaPublicadaControlle
 Route::put('/escalas-publicadas/alocacoes/{alocacaoPublicada}', [EscalaPublicadaController::class, 'updateAlocacao'])
     ->name('escalas-publicadas.alocacoes.update');
 
+// Adicionar novo slot/vaga em uma célula específica
+Route::post('/escalas-publicadas/{escalaPublicada}/slots/add', [EscalaPublicadaController::class, 'addSlot'])
+    ->name('escalas-publicadas.slots.add');
+
 // Escalas Publicadas - Calendário (consulta)
 Route::get('/escalas-publicadas/calendario', [EscalaPublicadaController::class, 'calendar'])
     ->name('escalas-publicadas.calendar');

@@ -65,4 +65,14 @@ class EscalaPublicada extends Model
         if ($this->total_slots == 0) return 0;
         return round(($this->preenchidos / $this->total_slots) * 100, 1);
     }
+
+    /**
+     * Recalcula as métricas da escala.
+     * Como as métricas são computed attributes, este método apenas
+     * recarrega o relacionamento para garantir dados atualizados.
+     */
+    public function recalcularMetricas(): void
+    {
+        $this->load('alocacoes');
+    }
 }

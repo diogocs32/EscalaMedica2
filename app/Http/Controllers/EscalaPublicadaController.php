@@ -7,6 +7,7 @@ use App\Models\AlocacaoPublicada;
 use App\Models\Plantonista;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EscalaPublicadaController extends Controller
 {
@@ -383,6 +384,79 @@ class EscalaPublicadaController extends Controller
         });
 
         return response()->json($events);
+    }
+
+    /**
+     * Adiciona um novo slot vazio em uma célula específica da escala
+     * 
+     * @param Request $request
+     * @param EscalaPublicada $escalaPublicada
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function addSlot(Request $request, EscalaPublicada $escalaPublicada)
+    {
+        // Validação
+        $validated = $request->validate([
+            'semana' => 'required|integer|min:1|max:5',
+            'dia' => 'required|integer|min:1|max:31',
+            'turno_id' => 'required|exists:turnos,id',
+            'setor_id' => 'required|exists:setores,id',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Encontrar o próximo número de slot disponível
+            $maxSlot = \App\Models\AlocacaoTemplate::where('escala_padrao_id', $escalaPublicada->escala_padrao_id)
+                ->where('semana', $validated['semana'])
+                ->where('dia', $validated['dia'])
+                ->where('turno_id', $validated['turno_id'])
+                ->where('setor_id', $validated['setor_id'])
+                ->max('slot');
+
+            $nextSlot = ($maxSlot ?? 0) + 1;
+
+            // Criar novo slot vazio na tabela template (padrão)
+            \App\Models\AlocacaoTemplate::create([
+                'escala_padrao_id' => $escalaPublicada->escala_padrao_id,
+                'semana' => $validated['semana'],
+                'dia' => $validated['dia'],
+                'turno_id' => $validated['turno_id'],
+                'setor_id' => $validated['setor_id'],
+                'slot' => $nextSlot,
+                'plantonista_id' => null, // Vago
+            ]);
+
+            // Criar novo slot vago na escala publicada (mês atual)
+            $data = \Carbon\Carbon::create(
+                $escalaPublicada->ano,
+                $escalaPublicada->mes,
+                $validated['dia']
+            );
+
+            \App\Models\AlocacaoPublicada::create([
+                'escala_publicada_id' => $escalaPublicada->id,
+                'turno_id' => $validated['turno_id'],
+                'setor_id' => $validated['setor_id'],
+                'data' => $data->format('Y-m-d'),
+                'plantonista_id' => null, // Vago
+            ]);
+
+            // Atualizar métricas da escala publicada
+            $escalaPublicada->refresh();
+            $escalaPublicada->recalcularMetricas();
+
+            DB::commit();
+
+            return redirect()
+                ->route('escalas-publicadas.edit', $escalaPublicada)
+                ->with('success', 'Nova vaga adicionada com sucesso!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()
+                ->withErrors(['error' => 'Erro ao adicionar vaga: ' . $e->getMessage()]);
+        }
     }
 
     /**

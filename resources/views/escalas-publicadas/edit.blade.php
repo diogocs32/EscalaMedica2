@@ -82,6 +82,20 @@
             transform: scale(1.05);
             box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
         }
+
+        .btn-add-slot {
+            font-size: 0.75rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            border-style: dashed !important;
+            border-width: 1px;
+            transition: all 0.2s;
+        }
+
+        .btn-add-slot:hover {
+            background: rgba(25, 135, 84, 0.1);
+            border-style: solid !important;
+        }
     </style>
     <script>
         function submitUpdate(formId) {
@@ -294,8 +308,32 @@
                                         </div>
                                         @endforeach
                                     </div>
+
+                                    <!-- Botão para adicionar nova vaga -->
+                                    <form method="POST" action="{{ route('escalas-publicadas.slots.add', $escalaPublicada) }}" style="display:inline; margin-top: 0.25rem;">
+                                        @csrf
+                                        <input type="hidden" name="semana" value="{{ $row['semana'] }}">
+                                        <input type="hidden" name="dia" value="{{ $row['dia'] }}">
+                                        <input type="hidden" name="turno_id" value="{{ $turno->id }}">
+                                        <input type="hidden" name="setor_id" value="{{ $setor->id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-success btn-add-slot" title="Adicionar nova vaga">
+                                            <i class="bi bi-plus-circle"></i> Adicionar
+                                        </button>
+                                    </form>
                                     @else
                                     <span class="text-muted text-center d-block">—</span>
+
+                                    <!-- Botão para adicionar primeira vaga -->
+                                    <form method="POST" action="{{ route('escalas-publicadas.slots.add', $escalaPublicada) }}" style="display:inline; margin-top: 0.25rem;">
+                                        @csrf
+                                        <input type="hidden" name="semana" value="{{ $row['semana'] }}">
+                                        <input type="hidden" name="dia" value="{{ $row['dia'] }}">
+                                        <input type="hidden" name="turno_id" value="{{ $turno->id }}">
+                                        <input type="hidden" name="setor_id" value="{{ $setor->id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-success btn-add-slot" title="Adicionar primeira vaga">
+                                            <i class="bi bi-plus-circle"></i> Adicionar
+                                        </button>
+                                    </form>
                                     @endif
                                 </td>
                                 @endforeach
