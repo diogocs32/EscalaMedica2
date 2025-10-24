@@ -36,7 +36,6 @@ class TurnoController extends Controller
             'nome' => 'required|string|max:255|unique:turnos,nome',
             'hora_inicio' => 'required|date_format:H:i',
             'hora_fim' => 'required|date_format:H:i',
-            'periodo' => 'sometimes|in:diurno,noturno,misto',
             'status' => 'sometimes|in:ativo,inativo'
         ]);
 
@@ -54,12 +53,15 @@ class TurnoController extends Controller
 
             $duracaoHoras = $inicio->diffInHours($fim);
 
+            // Calcular período automaticamente
+            $periodo = $this->calcularPeriodo($request->hora_inicio, $request->hora_fim);
+
             $turno = Turno::create([
                 'nome' => $request->nome,
                 'hora_inicio' => $request->hora_inicio . ':00',
                 'hora_fim' => $request->hora_fim . ':00',
                 'duracao_horas' => $duracaoHoras,
-                'periodo' => $request->periodo ?? 'diurno',
+                'periodo' => $periodo,
                 'status' => $request->status ?? 'ativo'
             ]);
 
@@ -104,7 +106,6 @@ class TurnoController extends Controller
             'nome' => 'required|string|max:255|unique:turnos,nome,' . $turno->id,
             'hora_inicio' => 'required|date_format:H:i',
             'hora_fim' => 'required|date_format:H:i',
-            'periodo' => 'sometimes|in:diurno,noturno,misto',
             'status' => 'sometimes|in:ativo,inativo'
         ]);
 
@@ -121,12 +122,15 @@ class TurnoController extends Controller
 
             $duracaoHoras = $inicio->diffInHours($fim);
 
+            // Calcular período automaticamente
+            $periodo = $this->calcularPeriodo($request->hora_inicio, $request->hora_fim);
+
             $turno->update([
                 'nome' => $request->nome,
                 'hora_inicio' => $request->hora_inicio . ':00',
                 'hora_fim' => $request->hora_fim . ':00',
                 'duracao_horas' => $duracaoHoras,
-                'periodo' => $request->periodo ?? $turno->periodo,
+                'periodo' => $periodo,
                 'status' => $request->status ?? $turno->status
             ]);
 
@@ -142,6 +146,47 @@ class TurnoController extends Controller
                 ->withInput()
                 ->withErrors(['error' => 'Erro ao atualizar turno: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Calcula o período (diurno/noturno/misto) baseado nos horários
+     * Diurno: 07:00 às 19:00
+     * Noturno: 19:00 às 07:00
+     * Misto: quando atravessa ambos os períodos
+     */
+    private function calcularPeriodo($horaInicio, $horaFim)
+    {
+        $inicio = Carbon::createFromFormat('H:i', $horaInicio);
+        $fim = Carbon::createFromFormat('H:i', $horaFim);
+
+        // Horários de referência
+        $inicioDiurno = Carbon::createFromTime(7, 0); // 07:00
+        $fimDiurno = Carbon::createFromTime(19, 0);    // 19:00
+
+        // Se fim <= início, é um turno que atravessa a meia-noite
+        if ($fim->lessThanOrEqualTo($inicio)) {
+            $fim->addDay();
+        }
+
+        // Verificar se o turno está completamente dentro do período diurno
+        if (
+            $inicio->greaterThanOrEqualTo($inicioDiurno) &&
+            $inicio->lessThan($fimDiurno) &&
+            $fim->greaterThan($inicioDiurno) &&
+            $fim->lessThanOrEqualTo($fimDiurno)
+        ) {
+            return 'diurno';
+        }
+
+        // Verificar se o turno está completamente dentro do período noturno
+        if (($inicio->greaterThanOrEqualTo($fimDiurno) || $inicio->lessThan($inicioDiurno)) &&
+            ($fim->greaterThan($fimDiurno) || $fim->lessThanOrEqualTo($inicioDiurno))
+        ) {
+            return 'noturno';
+        }
+
+        // Caso contrário, é misto (atravessa ambos os períodos)
+        return 'misto';
     }
 
     /**

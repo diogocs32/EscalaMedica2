@@ -286,7 +286,10 @@
         <div class="header">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                 <h1 style="margin: 0;">📅 Escala Padrão de 5 Semanas</h1>
-                <a href="{{ url('/unidades') }}" class="btn btn-secondary">← Voltar para Unidades</a>
+                <div style="display: flex; gap: 10px;">
+                    <a href="{{ route('schedule-patterns') }}" class="btn btn-primary">📋 Ir para Escala Padrão</a>
+                    <a href="{{ url('/unidades') }}" class="btn btn-secondary">← Voltar para Unidades</a>
+                </div>
             </div>
             <p><strong>Unidade:</strong> {{ $unidade->nome }}</p>
             <p><strong>Cidade:</strong> {{ $unidade->cidade->nome ?? 'N/A' }}</p>

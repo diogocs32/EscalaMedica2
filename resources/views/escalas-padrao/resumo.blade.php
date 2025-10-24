@@ -200,7 +200,7 @@
                         <div class="d-flex gap-2">
                             @if($item['escala'])
                             <a href="{{ route('schedule-patterns.schedule', $item['unidade']) }}" class="btn btn-sm btn-outline-primary w-100">
-                                <i class="bi bi-eye"></i> Ver
+                                <i class="bi bi-pencil-square"></i> Editar
                             </a>
                             @else
                             <a href="{{ route('escalas-padrao.create', $item['unidade']) }}" class="btn btn-sm btn-primary w-100">
@@ -212,7 +212,7 @@
                                 <i class="bi bi-calendar-check"></i> Publicar
                             </button>
                             @endif
-                            <a href="{{ route('unidades.show', $item['unidade']) }}" class="btn btn-sm btn-outline-secondary w-100">
+                            <a href="{{ route('escalas-padrao.index', $item['unidade']) }}" class="btn btn-sm btn-outline-secondary w-100">
                                 <i class="bi bi-hospital"></i> Unidade
                             </a>
                         </div>
