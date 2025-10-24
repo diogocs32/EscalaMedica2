@@ -71,6 +71,7 @@
                                             <div class="btn-group" role="group">
                                                 <a href="{{ route('unidades.show', $unidade) }}" class="btn btn-sm btn-outline-info" title="Ver detalhes">👁️</a>
                                                 <a href="{{ route('unidades.edit', $unidade) }}" class="btn btn-sm btn-outline-warning" title="Editar">✏️</a>
+                                                <a href="{{ route('escalas-padrao.index', $unidade) }}" class="btn btn-sm btn-outline-primary" title="Configurar Escala Padrão">📅</a>
                                                 <form action="{{ route('unidades.destroy', $unidade) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir esta unidade?')">
                                                     @csrf
                                                     @method('DELETE')

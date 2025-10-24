@@ -229,7 +229,7 @@ class EscalaPadraoController extends Controller
         }
 
         $semanaAtual = $escala->getSemanaAtual();
-        $dias = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
+        $dias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
 
         return view('escalas-padrao.index', compact('unidade', 'escala', 'semanaAtual', 'dias'));
     }

@@ -70,75 +70,40 @@
             color: #856404;
         }
 
-        .semanas-tabs {
+        .semana-section {
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             overflow: hidden;
         }
 
-        .semanas-nav {
-            display: flex;
-            border-bottom: 2px solid #e9ecef;
-            overflow-x: auto;
-        }
-
-        .semana-tab {
-            flex: 1;
-            min-width: 150px;
-            padding: 15px 20px;
-            text-align: center;
-            cursor: pointer;
-            border: none;
-            background: white;
-            color: #7f8c8d;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .semana-tab:hover {
-            background: #f8f9fa;
-        }
-
-        .semana-tab.active {
-            color: #3498db;
-            background: #f8f9fa;
-        }
-
-        .semana-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #3498db;
-        }
-
-        .semana-tab.atual {
-            background: #e8f4f8;
-        }
-
-        .semana-tab.atual .badge {
-            display: inline-block;
-            background: #3498db;
+        .semana-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            margin-left: 5px;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .semana-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .semana-header .badge-atual {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
         }
 
         .semana-content {
-            display: none;
             padding: 20px;
-        }
-
-        .semana-content.active {
-            display: block;
         }
 
         .dias-grid {
@@ -319,7 +284,10 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>📅 Escala Padrão de 5 Semanas</h1>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <h1 style="margin: 0;">📅 Escala Padrão de 5 Semanas</h1>
+                <a href="{{ url('/unidades') }}" class="btn btn-secondary">← Voltar para Unidades</a>
+            </div>
             <p><strong>Unidade:</strong> {{ $unidade->nome }}</p>
             <p><strong>Cidade:</strong> {{ $unidade->cidade->nome ?? 'N/A' }}</p>
             <p><strong>Vigência:</strong> Desde {{ \Carbon\Carbon::parse($escala->vigencia_inicio)->format('d/m/Y') }}</p>
@@ -350,33 +318,25 @@
             <p>Esta escala se repete automaticamente a cada 5 semanas. Semana atual: <strong>{{ $semanaAtual }}</strong>. Configure turnos e setores para cada dia da semana.</p>
         </div>
 
-        <!-- Semanas Tabs -->
-        <div class="semanas-tabs">
-            <div class="semanas-nav">
-                @for($s = 1; $s <= 5; $s++)
-                    @php
-                    $semana=$escala->semanas->firstWhere('numero_semana', $s);
-                    @endphp
-                    <button
-                        class="semana-tab {{ $s === 1 ? 'active' : '' }} {{ $s === $semanaAtual ? 'atual' : '' }}"
-                        onclick="showSemana({{ $s }})">
-                        Semana {{ $s }}
-                        @if($s === $semanaAtual)
-                        <span class="badge">ATUAL</span>
-                        @endif
+        <!-- Semanas (uma abaixo da outra) -->
+        @for($s = 1; $s <= 5; $s++)
+            @php
+            $semana=$escala->semanas->firstWhere('numero_semana', $s);
+            @endphp
+            <div class="semana-section">
+                <div class="semana-header">
+                    <div>
+                        <h2>Semana {{ $s }}</h2>
                         @if($semana && $semana->nome)
-                        <br><small style="font-size: 11px; opacity: 0.8;">{{ $semana->nome }}</small>
+                        <small style="opacity: 0.9; font-size: 13px;">{{ $semana->nome }}</small>
                         @endif
-                    </button>
-                    @endfor
-            </div>
+                    </div>
+                    @if($s === $semanaAtual)
+                    <span class="badge-atual">SEMANA ATUAL</span>
+                    @endif
+                </div>
 
-            <!-- Conteúdo das Semanas -->
-            @for($s = 1; $s <= 5; $s++)
-                @php
-                $semana=$escala->semanas->firstWhere('numero_semana', $s);
-                @endphp
-                <div class="semana-content {{ $s === 1 ? 'active' : '' }}" id="semana-{{ $s }}">
+                <div class="semana-content">
                     @if($semana)
                     <div class="dias-grid">
                         @foreach($dias as $dia)
@@ -415,34 +375,14 @@
                     <p style="text-align: center; padding: 40px; color: #95a5a6;">Semana não encontrada.</p>
                     @endif
                 </div>
-                @endfor
-        </div>
+            </div>
+            @endfor
 
-        <!-- Actions -->
-        <div class="actions">
-            <a href="{{ url('/unidades') }}" class="btn btn-secondary">← Voltar para Unidades</a>
-        </div>
+            <!-- Actions -->
+            <div class="actions">
+                <a href="{{ url('/unidades') }}" class="btn btn-secondary">← Voltar para Unidades</a>
+            </div>
     </div>
-
-    <script>
-        function showSemana(numero) {
-            // Remover active de todas as tabs
-            document.querySelectorAll('.semana-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-
-            // Remover active de todos os conteúdos
-            document.querySelectorAll('.semana-content').forEach(content => {
-                content.classList.remove('active');
-            });
-
-            // Adicionar active na tab clicada
-            event.target.closest('.semana-tab').classList.add('active');
-
-            // Adicionar active no conteúdo correspondente
-            document.getElementById('semana-' + numero).classList.add('active');
-        }
-    </script>
 </body>
 
 </html>
